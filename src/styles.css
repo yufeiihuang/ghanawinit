@@ -40,3 +40,6 @@ select:not([multiple]):focus-visible{border-color:#777}
 @media(max-width:650px){.collab-school-heading{flex-wrap:wrap}.collab-school-heading>.badge{margin-left:0}.collab-school-verification{padding-top:12px}}
 
 .collab-school-match{color:#ccc;font-size:13px;margin:0 0 10px}
+
+.collab-school-verification{max-width:600px;padding:24px 0}.collab-school-verification>h2{font-size:20px;line-height:26px;margin:0 0 8px;font-weight:600;letter-spacing:-.4px}.collab-school-verification>.collab-school-mark{margin-bottom:16px}.collab-school-verification>p{font-size:13px;line-height:21px;margin:0}.collab-school-verification form{margin-top:28px}.collab-school-verification form>label{font-size:12px;color:#aaa;margin-bottom:8px}.collab-email-row{display:flex;align-items:center;gap:10px}.collab-email-row input{min-width:0;flex:1;height:36px}.collab-email-row>.primary{height:36px;flex-shrink:0;margin:0;padding:7px 12px;font-size:12px;box-shadow:none;background:#ededed}.collab-school-verification .collab-note{margin-top:12px;line-height:18px}
+@media(max-width:420px){.collab-email-row{align-items:stretch;flex-direction:column}.collab-email-row>.primary{align-self:flex-start}}
