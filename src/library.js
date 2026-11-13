@@ -1,3 +1,4 @@
+import { organizationPlan, applyOrganization, undoOrganization } from './routine-controls.js';
 import { workspaceKey } from './workspace-storage.js';
 import { icon } from './icons.js';
 import { readDraft } from './onboarding-state.js';
@@ -20,6 +21,22 @@ export function libraryFiles(draft, saved) {
   }
   for (const file of saved.files) files.set(file.id, file);
   return [...files.values()];
+}
+function syncLibrary() {
+ const next=workspaceKey('speqq-library-v1');
+ if(KEY!==next){query='';folder='';panel='';menu=false;notice='';selected='';}
+ KEY=next;
+ try{db=JSON.parse(localStorage.getItem(KEY));}catch{db=null;}
+ if(!db||!Array.isArray(db.files)||!Array.isArray(db.folders))db={files:[],folders:[]};
+}
+export function routineLibraryContext(){syncLibrary();return {files:allFiles(),folders:folders()};}
+export function previewOrganization(access){syncLibrary();return organizationPlan(allFiles(),db,access);}
+export function organizeLibrary(access,proposed){
+ syncLibrary();const storageKey=KEY;
+ const {saved,applied,createdFolders}=applyOrganization(allFiles(),db,access,proposed);
+ if(!applied.length)return null;
+ db=saved;save();
+ return {count:applied.length,undo:()=>{if(workspaceKey('speqq-library-v1')!==storageKey)return false;syncLibrary();db=undoOrganization(db,applied,createdFolders);save();return true;}};
 }
 const allFiles = () => libraryFiles(readDraft(localStorage), db);
 const folders = () => [...new Set([...readDraft(localStorage).courses, ...db.folders])];
@@ -46,16 +63,17 @@ function overlay() {
     if (!file) return '';
     title = file.name;
     const url = blobs.get(file.id);
-    body = `<div class="lib-file-meta"><span>${esc(file.source)}</span><span>${type(file)}</span><span>${size(file)}</span></div>${file.content ? `<pre class="lib-text-preview">${esc(file.content)}</pre>` : url && /\.(png|jpe?g|webp)$/i.test(file.name) ? `<img class="lib-image-preview" src="${url}" alt="${esc(file.name)}">` : `<div class="lib-no-preview">${icon('Specs',40)}<p>${esc(file.name)}</p></div>`}<label>Folder<select id="lib-file-folder"><option value="">My files</option>${folders().map(name => `<option value="${esc(name)}" ${file.folder === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><div class="dialog-footer">${btn('Done','close','primary')}</div>`;
+    body = `<div class="lib-file-meta"><span>${esc(file.source)}</span><span>${type(file)}</span><span>${size(file)}</span></div>${file.content ? `<pre class="lib-text-preview">${esc(file.content)}</pre>` : url && /\.(png|jpe?g|webp)$/i.test(file.name) ? `<img class="lib-image-preview" src="${url}" alt="${esc(file.name)}">` : `<div class="lib-no-preview">${icon('Specs',40)}<p>${esc(file.name)}</p></div>`}<label class="routine-check"><input type="checkbox" id="lib-keep-file" ${file.keepInPlace?'checked':''}><span>Keep in place<small>Routines can’t move this file</small></span></label><label>Folder<select id="lib-file-folder"><option value="">My files</option>${folders().map(name => `<option value="${esc(name)}" ${file.folder === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><div class="dialog-footer">${btn('Done','close','primary')}</div>`;
   }
   return `<div class="modal-backdrop" data-lib="close"></div><section class="dialog lib-dialog" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="dialog-heading"><h2>${esc(title)}</h2>${btn(icon('close'),'close','icon-button','aria-label="Close Library dialog"')}</div>${body}</section>`;
 }
 export function renderLibrary() {
   const nextKey = workspaceKey('speqq-library-v1');
   if (nextKey !== KEY) { KEY = nextKey; try { db = JSON.parse(localStorage.getItem(KEY)) || {files:[],folders:[]}; } catch { db = {files:[],folders:[]}; } query = ''; folder = ''; panel = ''; menu = false; notice = ''; }
+  syncLibrary();
   const files = allFiles().filter(f => (!folder || f.folder === folder) && f.name.toLowerCase().includes(query.toLowerCase()));
-  const list = files.map(file => `<button class="lib-file ${grid ? 'lib-file-card' : ''}" data-lib="open" data-id="${esc(file.id)}"><span class="lib-file-name"><span class="brand">${icon('Specs',18)}</span><span>${esc(file.name)}</span></span><span>${esc(file.source)}</span><span>${esc(file.folder || 'My files')}</span><span>${esc(file.date || 'Today')}</span><span>${size(file)}</span></button>`).join('');
-  return `<div class="page library-page"><div class="page-title"><h1>Library</h1><span class="spacer"></span><div class="lib-add-wrap">${btn(icon('plus',16)+' New','new','primary','aria-label="Add to Library" aria-expanded="'+menu+'"')}${menu ? `<div class="popup-menu lib-add-menu" role="menu">${btn('Upload files','upload')}${btn('Upload a picture','picture')}${btn('Scan with your phone','scan')}<hr>${['Google Drive','Notability','Notion','Goodnotes','Obsidian'].map(app => btn(`${appLogo(app)}<span>Import from ${app}</span>`,'import','',`data-app="${app}"`)).join('')}<hr>${btn('New folder','folder')}</div>` : ''}</div></div><div class="toolbar"><label class="search">${icon('search',15)}<input id="lib-search" placeholder="Search in Library" aria-label="Search in Library" value="${esc(query)}"></label><span class="spacer"></span>${btn(icon(grid ? 'list' : 'grid',16), 'view', 'icon-button', `aria-label="Switch to ${grid ? 'list' : 'grid'} view"`)}</div><div class="lib-breadcrumb">${btn('My files','root',folder ? '' : 'bright')}${folder ? icon('right',12)+`<span>${esc(folder)}</span>` : ''}</div>${!folder && !query && folders().length ? `<h3 class="muted">Folders</h3><div class="lib-folders">${folders().map(name => btn(icon('Library',18)+esc(name),'open-folder','',`data-folder="${esc(name)}"`)).join('')}</div>` : ''}<div class="lib-files-heading"><h3>${folder ? esc(folder) : 'Files'}</h3><span class="muted">${files.length} ${files.length === 1 ? 'file' : 'files'}</span></div>${!grid && files.length ? '<div class="lib-table-head"><span>Name</span><span>Source</span><span>Folder</span><span>Added</span><span>Size</span></div>' : ''}<div class="${grid ? 'lib-grid' : 'lib-list'}">${list || `<div class="empty">${icon('Library',32)}<h3>${query ? 'No matching files' : 'Your files belong here'}</h3><p>${query ? 'Try another search' : 'Upload notes, readings, slides, or photos to get started'}</p>${!query ? `${btn(icon('plus',14)+' Add files','new','subtle')}<div class="lib-empty-imports"><p>Or bring files from the tools you already use</p><div>${['Google Drive','Notability','Notion','Goodnotes'].map(app => btn(`${appLogo(app)}<span>Import from ${app}</span>`, 'import', 'lib-import-shortcut', `data-app="${app}"`)).join('')}</div></div>` : ''}</div>`}</div><div class="lib-status" role="status">${esc(notice)}</div><input hidden type="file" id="lib-upload" multiple><input hidden type="file" id="lib-picture" accept=".png,.jpg,.jpeg,.webp" multiple><input hidden type="file" id="lib-camera" accept="image/*" capture="environment">${overlay()}</div>`;
+  const list = files.map(file => `<button class="lib-file ${grid ? 'lib-file-card' : ''}" data-lib="open" data-id="${esc(file.id)}"><span class="lib-file-name"><span class="brand">${icon('Specs',18)}</span><span>${esc(file.name)}${file.keepInPlace?icon('lock',12):''}</span></span><span>${esc(file.source)}</span><span>${esc(file.folder || 'My files')}</span><span>${esc(file.date || 'Today')}</span><span>${size(file)}</span></button>`).join('');
+  return `<div class="page library-page"><div class="page-title"><h1>Library</h1><span class="spacer"></span><div class="lib-add-wrap">${btn(icon('plus',16)+' New','new','primary','aria-label="Add to Library" aria-expanded="'+menu+'"')}${menu ? `<div class="popup-menu lib-add-menu" role="menu">${btn('Upload files','upload')}${btn('Upload a picture','picture')}${btn('Scan with your phone','scan')}<hr>${['Google Drive','Notability','Notion','Goodnotes','Obsidian'].map(app => btn(`${appLogo(app)}<span>Import from ${app}</span>`,'import','',`data-app="${app}"`)).join('')}<hr>${btn('New folder','folder')}</div>` : ''}</div></div><div class="toolbar"><label class="search">${icon('search',15)}<input id="lib-search" placeholder="Search in Library" aria-label="Search in Library" value="${esc(query)}"></label><span class="spacer"></span>${btn(icon(grid ? 'list' : 'grid',16), 'view', 'icon-button', `aria-label="Switch to ${grid ? 'list' : 'grid'} view"`)}</div><div class="lib-breadcrumb">${btn('My files','root',folder ? '' : 'bright')}${folder ? icon('right',12)+`<span>${esc(folder)}</span><span class="spacer"></span><label class="routine-check"><input id="lib-keep-folder" type="checkbox" ${(db.lockedFolders||[]).includes(folder)?'checked':''}>Keep folder in place</label>` : ''}</div>${!folder && !query && folders().length ? `<h3 class="muted">Folders</h3><div class="lib-folders">${folders().map(name => btn(icon('Library',18)+esc(name),'open-folder','',`data-folder="${esc(name)}"`)).join('')}</div>` : ''}<div class="lib-files-heading"><h3>${folder ? esc(folder) : 'Files'}</h3><span class="muted">${files.length} ${files.length === 1 ? 'file' : 'files'}</span></div>${!grid && files.length ? '<div class="lib-table-head"><span>Name</span><span>Source</span><span>Folder</span><span>Added</span><span>Size</span></div>' : ''}<div class="${grid ? 'lib-grid' : 'lib-list'}">${list || `<div class="empty">${icon('Library',32)}<h3>${query ? 'No matching files' : 'Your files belong here'}</h3><p>${query ? 'Try another search' : 'Upload notes, readings, slides, or photos to get started'}</p>${!query ? `${btn(icon('plus',14)+' Add files','new','subtle')}<div class="lib-empty-imports"><p>Or bring files from the tools you already use</p><div>${['Google Drive','Notability','Notion','Goodnotes'].map(app => btn(`${appLogo(app)}<span>Import from ${app}</span>`, 'import', 'lib-import-shortcut', `data-app="${app}"`)).join('')}</div></div>` : ''}</div>`}</div><div class="lib-status" role="status">${esc(notice)}</div><input hidden type="file" id="lib-upload" multiple><input hidden type="file" id="lib-picture" accept=".png,.jpg,.jpeg,.webp" multiple><input hidden type="file" id="lib-camera" accept="image/*" capture="environment">${overlay()}</div>`;
 }
 export function bindLibrary(root, redraw, active) {
   controller?.abort();
@@ -98,6 +116,8 @@ export function bindLibrary(root, redraw, active) {
     const input = root.querySelector('#lib-search'); input.focus(); input.setSelectionRange(pos,pos);
   }, opts);
   root.addEventListener('change', async e => {
+    if(e.target.id==='lib-keep-file'){const file=allFiles().find(f=>f.id===selected);db.files=db.files.filter(f=>f.id!==selected);db.files.push({...file,keepInPlace:e.target.checked});save();return;}
+    if(e.target.id==='lib-keep-folder'){db.lockedFolders=e.target.checked?[...new Set([...(db.lockedFolders||[]),folder])]:(db.lockedFolders||[]).filter(f=>f!==folder);save();return;}
     if (e.target.matches('[data-lib-import]')) { const i = Number(e.target.dataset.libImport); chosen = e.target.checked ? [...chosen,i] : chosen.filter(n => n !== i); root.querySelector('[data-lib="import-confirm"]').disabled = !chosen.length; return; }
     if (e.target.id === 'lib-file-folder') { const file = allFiles().find(f => f.id === selected); db.files = db.files.filter(f => f.id !== selected); db.files.push({...file,folder:e.target.value}); save(); return; }
     if (!['lib-upload','lib-picture','lib-camera'].includes(e.target.id)) return;
