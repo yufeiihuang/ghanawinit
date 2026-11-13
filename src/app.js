@@ -1,4 +1,5 @@
 import { navGroups, shortcuts, today, initialData, filterItems, calendarCells } from './data.js';
+import { renderLibrary, bindLibrary } from './library.js';
 import { icon, brand } from './icons.js';
 import { renderStudentRoute, openCustomization } from './onboarding.js';
 import { readDraft, needsOnboarding } from './onboarding-state.js';
@@ -114,6 +115,7 @@ function settings(){
  return `<h1>${t}</h1><section class="panel"><h3>${t} settings</h3><p class="muted">Manage ${t.toLowerCase()} for your workspace.</p><label class="setting-toggle">Enable ${t}<input type="checkbox" data-preference="feature-${t}" ${db['feature-'+t]!==false?'checked':''}></label>${t==='Team'?button('Manage team','settings-team','subtle'):''}</section>`;
 }
 function content(){
+ if(state.page==='Library')return renderLibrary();
  if(state.page==='Home')return home();
  if(state.page==='Settings')return `<div class="page settings-page">${settings()}</div>`;
  const r=current();
@@ -122,7 +124,7 @@ function content(){
  return `<div class="page"><h1>${state.page}</h1>${state.page==='Calendar'?calendar():toolbar()+(state.page==='Connectors'?connectorView():state.page==='Logs'?`<div class="runs-chart"><div>Runs <span class="muted">12</span></div><div class="chart-bars">${Array.from({length:64},(_,i)=>`<span style="height:${5+(i*17%55)}px"></span>`).join('')}</div><div class="chart-axis"><span>Oct 5 12:24</span><span>Oct 6 00:24</span><span>Oct 6 12:24</span></div></div>${rows()}`:rows())}</div>`;
 }
 function composer(){
- if(state.page==='Settings')return '';
+ if(['Settings','Library'].includes(state.page))return '';
  return `<div class="ask-dock ${state.chat?'is-chat':''} ${state.chatExpanded?'expanded':''}">${state.chat?`<section class="chat-window"><header>${icon('chat',16)}<strong>Ask Speqq</strong><span class="spacer"></span>${ib('check','like-answer','Helpful answer')}${ib('minus','minimize-chat','Minimize')}${ib('expand','expand-chat','Expand')}${ib('close','close-chat','Close conversation')}</header><div class="messages">${state.messages.map(m=>m.role==='user'?`<div class="user-message">${esc(m.text)}</div>`:`<div class="answer"><p>${esc(m.text)}</p><div class="source-chips">${badge('◕ #2417')}${badge('◒ WEB-1182')}${badge('◕ session.ts')}</div>${button(icon('down',12)+' All 7 sources','sources','sources-button')}${state.sources?`<div class="sources-list">${['GitHub · #2417 Fix concurrent session refresh','Linear · WEB-1182','GitHub · src/lib/session.ts','Spec · Session management','Slack · #umami-team','Memory · Session refresh','GitHub · #2421'].map(s=>`<div>${esc(s)}</div>`).join('')}</div>`:''}</div>`).join('')}</div></section>`:''}<form id="ask-form" class="composer">${ib('plus','attach','Add context')}<input name="question" id="ask-input" aria-label="${state.chat?'Ask a follow-up':'Ask about Umami'}" placeholder="${state.chat?'Ask a follow-up':'Ask about '+esc(db.workspace)}" autocomplete="off">${!state.chat?ib('chat','open-chat','Open Ask Speqq'):''}${ib('down','ask-options','Question options')}<button class="send" type="submit" aria-label="Send question">${icon('arrow',20)}</button></form></div>`;
 }
 function menus(){
@@ -155,8 +157,9 @@ function modal(){
 }
 function render(){
  if(needsOnboarding(readDraft(localStorage), location.hash)) window.history.replaceState(null,'','#Onboarding');
- if(renderStudentRoute(app))return;
+ if(renderStudentRoute(app)){bindLibrary(app,render,false);return;}
  app.innerHTML=`${sidebar()}<main class="main ${state.sidebar?'':'full'}">${header()}<div class="main-scroll">${content()}</div>${composer()}</main>${menus()}${modal()}<div id="toast" role="status"></div>`;
+ bindLibrary(app,render,state.page==='Library');
  if(state.modal)setTimeout(()=>document.querySelector('#command-search,.dialog input')?.focus(),0);
  document.title=(state.detail?current()?.title:state.page)+' · '+db.workspace;
 }
@@ -169,7 +172,7 @@ function sanitizeDocument(html){
 }
 function toast(text){const t=document.querySelector('#toast');t.textContent=text;t.classList.add('visible');clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>t.classList.remove('visible'),2300);}
 function openMenu(type,e,id){const r=e?.getBoundingClientRect();state.menu={type,id,x:r?.left??260,y:r?r.bottom+5:60,bottom:r?window.innerHeight-r.top+8:8,width:r?.width};render();}
-function create(){state.modal={type:state.page==='Team'?'invite':state.page==='Calendar'?'event':'create'};state.menu=null;render();}
+function create(){if(state.page==='Library'){document.querySelector('[data-lib="new"]')?.click();return;}state.modal={type:state.page==='Team'?'invite':state.page==='Calendar'?'event':'create'};state.menu=null;render();}
 function deleteItem(id){const key=dataKey();const item=db[key]?.find(r=>r.id===id);if(!item)return;db[key]=db[key].filter(r=>r.id!==id);db.trash.push({...item,kind:state.page,key});save();state.detail=null;state.menu=null;render();toast('Moved to trash');}
 function ask(text){if(!text.trim())return;state.chat=true;state.messages.push({role:'user',text:text.trim()},{role:'assistant',text:/billing|invoice|stripe/i.test(text)?'Billing v2 is moving to Stripe. Webhook retries now run through a queue. The remaining issues are annual-to-monthly downgrades and duplicate invoice emails (BILL-219).':/release|v4|2431/i.test(text)?'v4.13 ships tomorrow. Review #2431 is still open and blocks the release. Dana and Priya are on the release; the Milestone 2 demo is due Friday.':'Sessions refresh in refreshSession, 5 minutes before the access token expires. Two tabs refreshing at once is the open bug; #2417 fixes it.'});render();document.querySelector('#ask-input')?.focus();}
 

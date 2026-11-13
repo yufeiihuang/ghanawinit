@@ -1,5 +1,5 @@
 export const navGroups = [
-  ['', ['Home', 'Inbox', 'Calendar']], ['Work', ['Goals', 'Specs', 'Memory']],
+  ['', ['Home', 'Inbox', 'Calendar']], ['Work', ['Goals', 'Specs', 'Library', 'Memory']],
   ['Automation', ['Agents', 'Skills']], ['Workspace', ['Connectors', 'Team']],
   ['System', ['Logs', 'Trash', 'Settings', 'Commands']]
 ];

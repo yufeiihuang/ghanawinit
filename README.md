@@ -67,3 +67,9 @@ Keyboard shortcuts: `G` then `H/I/O/S/M/A/K/C/T/L` opens the corresponding sideb
 ### Handwritten note scan demo
 
 Under Upload notes, Scan with your phone opens a QR panel. Preview phone upload shows a camera/file picker and a sample-photo action. The bundled QR encodes the local `http://127.0.0.1:5173/#Onboarding/phone` demo route; it is not a remote upload session. Cross-device transfer and handwriting recognition are simulated for the case-competition prototype. Actual file selections use the existing local note-file handling.
+
+### Library
+
+Library lives under Work and provides a Drive-style file list, grid view, search, course folders, custom folders, previews, and folder assignment. Notes and transcripts selected during setup are included automatically. The + New menu supports files, pictures, phone scans, and simulated imports from Notability, Notion, Goodnotes, and Obsidian. Imports use fixed sample Markdown notes; no external accounts are accessed.
+
+Library metadata and text contents are stored under `speqq-library-v1`. Selected images can be previewed during the current page session; binary file contents are not retained across reloads. The QR and sample-photo flows are demo interactions, not cross-device transfer or OCR.
