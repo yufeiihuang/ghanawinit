@@ -1,9 +1,11 @@
-import { navGroups, shortcuts, today, initialData, filterItems, calendarCells } from './data.js';
+import { navGroups, shortcuts, today, initialData, filterItems, calendarCells, connectorCategories, connectorCategory, roles, defaultRole, suggestedConnectors } from './data.js';
 import { icon, brand } from './icons.js';
 
 const STORAGE='speqq-umami-v1';
 let db;
 try { db=JSON.parse(localStorage.getItem(STORAGE)) || initialData(); } catch { db=initialData(); }
+// Add connectors introduced after a browser first saved its workspace.
+if(Array.isArray(db.connectors)){const have=new Set(db.connectors.map(c=>c.title));for(const c of initialData().connectors)if(!have.has(c.title))db.connectors.push(c);}
 const state={page:'Home',detail:null,query:'',sort:false,filter:'All',expanded:'goal-0',carousel:0,sidebar:window.innerWidth>650,modal:null,menu:null,chat:false,messages:[],month:10,year:2026,settingsTab:'Profile',specTab:'Overview',sources:false,memoryPeriod:'All time',memoryPerson:'Everyone',history:[],future:[]};
 const app=document.querySelector('#app');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -72,10 +74,18 @@ function rows(){
 function connectorView(){
  let list=filterItems(db.connectors,state.query);
  if(state.sort)list.reverse();
- return [true,false].map(connected=>{
- const items=list.filter(r=>r.connected===connected&&(state.filter==='All'||state.filter===(connected?'Connected':'Available')));
- return items.length?`<section class="connector-section"><h3>${connected?'Connected':'Available'} <span class="muted">${items.length}</span></h3><div class="connector-grid">${items.map(r=>`<button class="connector-card" data-action="open-item" data-id="${r.id}">${brand(r.title)}<span class="row-copy"><span>${r.title}</span><small>${r.description}</small></span><span class="badge ${connected?'connected':''}">${connected?'✓ Connected':'Connect'}</span>${icon('right',14)}</button>`).join('')}</div></section>`:'';
- }).join('')||empty('No connectors found');
+ const role=roles[db.profile.role]?db.profile.role:defaultRole;
+ const card=r=>`<button class="connector-card" data-action="open-item" data-id="${r.id}">${brand(r.title)}<span class="row-copy"><span>${esc(r.title)}</span><small>${esc(r.description)}</small></span><span class="badge ${r.connected?'connected':''}">${r.connected?'✓ Connected':'Connect'}</span>${icon('right',14)}</button>`;
+ const section=(title,items,extra='',cls='')=>items.length?`<section class="connector-section ${cls}"><h3>${title}${extra}</h3><div class="connector-grid">${items.map(card).join('')}</div></section>`:'';
+ const showAvailable=state.filter!=='Connected',showConnected=state.filter!=='Available';
+ const suggested=showAvailable?suggestedConnectors(db.connectors,role).filter(r=>list.includes(r)):[];
+ const available=list.filter(r=>!r.connected&&!suggested.includes(r));
+ const groups=connectorCategories.map(([name])=>section(name,available.filter(r=>connectorCategory(r.title)===name))).join('');
+ return [
+  section('Suggested',suggested,`<span class="connector-hint">${esc(roles[role].notA)} <button class="link" data-action="profile">Change role</button></span>`,'suggested'),
+  showConnected?section('Connected',list.filter(r=>r.connected)):'',
+  showAvailable&&groups?`<section class="connector-section"><h3>Available</h3><div class="connector-subsections">${groups}</div></section>`:''
+ ].join('')||empty('No connectors found');
 }
 function calendar(){
  const colors={Meeting:'gray',Release:'blue',Milestone:'teal',Spec:'purple',Goal:'yellow',Launch:'green'};
@@ -105,7 +115,7 @@ function genericDetail(r){
 }
 function settings(){
  const t=state.settingsTab;
- if(t==='Profile')return `<div class="page-title"><h1>Profile</h1><span class="spacer"></span>${button('Save','save-profile','primary')}</div><h3>Account</h3><div class="panel profile-card"><span class="avatar large">SR</span><div><h3>${esc(db.profile.first+' '+db.profile.last)}</h3><p class="muted">sam@umami.is</p></div><span class="spacer"></span>${button('Change picture','change-picture','subtle')}</div><section class="panel profile-fields"><label>First name<input aria-label="First name" id="first-name" value="${attr(db.profile.first)}"></label><label>Last name<input aria-label="Last name" id="last-name" value="${attr(db.profile.last)}"></label><label>Email<span>sam@umami.is</span></label><label><span>Username<small>3–20 lowercase letters, numbers, or underscores.</small></span><input aria-label="Username" id="username" value="${attr(db.profile.username)}" minlength="3" maxlength="20" pattern="[a-z0-9_]+"></label></section>`;
+ if(t==='Profile')return `<div class="page-title"><h1>Profile</h1><span class="spacer"></span>${button('Save','save-profile','primary')}</div><h3>Account</h3><div class="panel profile-card"><span class="avatar large">SR</span><div><h3>${esc(db.profile.first+' '+db.profile.last)}</h3><p class="muted">sam@umami.is</p></div><span class="spacer"></span>${button('Change picture','change-picture','subtle')}</div><section class="panel profile-fields"><label>First name<input aria-label="First name" id="first-name" value="${attr(db.profile.first)}"></label><label>Last name<input aria-label="Last name" id="last-name" value="${attr(db.profile.last)}"></label><label>Email<span>sam@umami.is</span></label><label><span>Username<small>3–20 lowercase letters, numbers, or underscores.</small></span><input aria-label="Username" id="username" value="${attr(db.profile.username)}" minlength="3" maxlength="20" pattern="[a-z0-9_]+"></label><label><span>Role<small>Used to suggest connectors.</small></span><select aria-label="Role" id="role">${Object.keys(roles).map(r=>`<option${r===(db.profile.role||defaultRole)?' selected':''}>${r}</option>`).join('')}</select></label></section>`;
  if(t==='General')return `<div class="page-title"><h1>General</h1><span class="spacer"></span>${button('Save','save-workspace','primary')}</div><section class="panel profile-fields"><label>Workspace name<input id="workspace-name" aria-label="Workspace name" value="${attr(db.workspace)}"></label><label>Workspace URL<span class="muted">umami.speqq.com</span></label></section>`;
  if(t==='Notifications')return `<h1>Notifications</h1><section class="panel profile-fields">${['Email notifications','Desktop notifications','Spec reviews','Agent approvals','Goal updates'].map((n,i)=>`<label>${n}<input type="checkbox" data-preference="notification-${i}" ${db['notification-'+i]!==false?'checked':''}></label>`).join('')}</section>`;
  if(t==='Billing')return `<h1>Billing</h1><section class="panel"><h3>Workspace plan</h3><p>Pro</p><p class="muted">Manage the plan for ${esc(db.workspace)}.</p>${badge('Active')}</section>`;
@@ -241,7 +251,7 @@ app.addEventListener('click',async e=>{
  case 'attach-memory':navigate('Memory');break;
  case 'attach-connectors':navigate('Connectors');break;
  case 'recent-spec':navigate('Specs','spec-0');break;
- case 'save-profile':{const first=document.querySelector('#first-name').value.trim(),last=document.querySelector('#last-name').value.trim(),username=document.querySelector('#username');if(!first||!last||!username.checkValidity()){toast('Enter a name and valid username');username.reportValidity();break;}db.profile={first,last,username:username.value};save();render();toast('Profile saved');break;}
+ case 'save-profile':{const first=document.querySelector('#first-name').value.trim(),last=document.querySelector('#last-name').value.trim(),username=document.querySelector('#username');if(!first||!last||!username.checkValidity()){toast('Enter a name and valid username');username.reportValidity();break;}db.profile={first,last,username:username.value,role:document.querySelector('#role').value};save();render();toast('Profile saved');break;}
  case 'save-workspace':db.workspace=document.querySelector('#workspace-name').value.trim()||'Umami';save();render();toast('Workspace saved');break;
  case 'change-picture':{const input=document.createElement('input');input.type='file';input.accept='image/*';input.onchange=()=>toast('Picture selected');input.click();break;}
  case 'settings-team':navigate('Team');break;

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { initialData, filterItems, calendarCells } from '../src/data.js';
+import { initialData, filterItems, calendarCells, connectorCategories, connectorCategory, suggestedConnectors, roles } from '../src/data.js';
 
 test('workspace seed is isolated from edits and has unique stable ids',()=>{
  const first=initialData();const next=initialData();
@@ -32,4 +32,23 @@ test('calendar handles leap years and leading days',()=>{
  assert.equal(cells.filter(x=>x.current).length,29);
  assert.equal(cells.findIndex(x=>x.current),2);
  assert.equal(cells.length%7,0);
+});
+test('every connector belongs to exactly one of at most three categories',()=>{
+ assert.ok(connectorCategories.length<=3);
+ const listed=connectorCategories.flatMap(([,t])=>t);
+ assert.equal(new Set(listed).size,listed.length);
+ for(const c of initialData().connectors)assert.ok(listed.includes(c.title),c.title+' has no category');
+ assert.equal(connectorCategory('Quizlet'),'Learning');
+});
+test('suggestions follow the profile role and skip connected connectors',()=>{
+ const db=initialData();
+ for(const role of Object.keys(roles)){
+  const picks=suggestedConnectors(db.connectors,role);
+  assert.equal(picks.length,4,role);
+  assert.ok(picks.every(c=>!c.connected));
+ }
+ assert.deepEqual(suggestedConnectors(db.connectors,'Student').map(c=>c.title),['Quizlet','Google Classroom','Notability','GoodNotes 6']);
+ db.connectors.find(c=>c.title==='Quizlet').connected=true;
+ assert.equal(suggestedConnectors(db.connectors,'Student')[3].title,'Brightspace');
+ assert.equal(suggestedConnectors(db.connectors,'Unknown')[0].title,'Claude Code');
 });
