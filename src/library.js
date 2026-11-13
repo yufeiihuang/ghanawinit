@@ -12,6 +12,7 @@ try { db = JSON.parse(localStorage.getItem(KEY)); } catch {}
 if (!db || !Array.isArray(db.files) || !Array.isArray(db.folders)) db = { files: [], folders: [] };
 let query = '', folder = '', grid = false, menu = false, panel = '', selected = '', notice = '', importApp = '', chosen = [];
 let controller;
+let pendingFolder = null;
 const blobs = new Map();
 const save = () => localStorage.setItem(KEY, JSON.stringify(db));
 const btn = (label, action, cls = '', extra = '') => `<button type="button" class="${cls}" data-lib="${action}" ${extra}>${label}</button>`;
@@ -64,7 +65,7 @@ function overlay() {
     if (!file) return '';
     title = file.name;
     const url = blobs.get(file.id);
-    body = `<div class="lib-file-meta"><span>${esc(file.source)}</span><span>${type(file)}</span><span>${size(file)}</span></div>${file.content ? `<pre class="lib-text-preview">${esc(file.content)}</pre>` : url && /\.(png|jpe?g|webp)$/i.test(file.name) ? `<img class="lib-image-preview" src="${url}" alt="${esc(file.name)}">` : `<div class="lib-no-preview">${icon('Specs',40)}<p>${esc(file.name)}</p></div>`}<div class="lib-keep-row"><label class="routine-check"><input type="checkbox" id="lib-keep-file" ${file.keepInPlace?'checked':''}><span>Keep in place</span></label>${helpButton('Keep in place','keep')}</div><label>Folder<select id="lib-file-folder"><option value="">My files</option>${folders().map(name => `<option value="${esc(name)}" ${file.folder === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><div class="dialog-footer">${btn('Done','close','primary')}</div>`;
+    body = `<div class="lib-file-meta"><span>${esc(file.source)}</span><span>${type(file)}</span><span>${size(file)}</span></div>${file.content ? `<pre class="lib-text-preview">${esc(file.content)}</pre>` : url && /\.(png|jpe?g|webp)$/i.test(file.name) ? `<img class="lib-image-preview" src="${url}" alt="${esc(file.name)}">` : `<div class="lib-no-preview">${icon('Specs',40)}<p>${esc(file.name)}</p></div>`}<div class="lib-keep-row"><label class="routine-check"><input type="checkbox" id="lib-keep-file" ${file.keepInPlace?'checked':''}><span>Keep in place</span></label>${helpButton('Keep in place','keep')}</div><label>Folder<select id="lib-file-folder"><option value="">My files</option>${folders().map(name => `<option value="${esc(name)}" ${(pendingFolder ?? file.folder) === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><div class="dialog-footer">${btn('Done','file-done','primary')}</div>`;
   }
   return `<div class="modal-backdrop" data-lib="close"></div><section class="dialog lib-dialog" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="dialog-heading"><h2>${esc(title)}</h2>${btn(icon('close'),'close','icon-button','aria-label="Close Library dialog"')}</div>${body}</section>`;
 }
@@ -78,7 +79,7 @@ export function renderLibrary() {
 }
 export function bindLibrary(root, redraw, active, notify = () => {}) {
   controller?.abort();
-  if (!active) { menu = false; panel = ''; return; }
+  if (!active) { menu = false; panel = ''; pendingFolder = null; return; }
   controller = new AbortController();
   const opts = { signal: controller.signal };
   const dismissMenu = () => {
@@ -94,11 +95,21 @@ export function bindLibrary(root, redraw, active, notify = () => {}) {
     const action = el.dataset.lib;
     if (['upload','picture','camera'].includes(action)) { dismissMenu(); root.querySelector(`#lib-${action}`).click(); return; }
     if (action === 'new') menu = !menu;
-    else if (action === 'close') panel = '';
+    else if (action === 'close') {panel = '';pendingFolder=null;}
+    else if (action === 'file-done') {
+      const file=allFiles().find(f=>f.id===selected),destination=pendingFolder;
+      panel='';pendingFolder=null;
+      if(file&&destination!==null&&(file.folder||'')!==destination){
+        const storageKey=KEY,change={id:file.id,from:file.folder||'',to:destination};
+        db.files=db.files.filter(f=>f.id!==file.id);db.files.push({...file,folder:destination});save();redraw();
+        notify(`Moved to ${destination||'My files'}`,()=>{if(workspaceKey('speqq-library-v1')!==storageKey)return false;syncLibrary();db=undoOrganization(db,[change]);save();return true;});
+        return;
+      }
+    }
     else if (action === 'view') grid = !grid;
     else if (action === 'root') folder = '';
     else if (action === 'open-folder') folder = el.dataset.folder;
-    else if (action === 'open') { selected = el.dataset.id; panel = 'file'; }
+    else if (action === 'open') { selected = el.dataset.id; pendingFolder=allFiles().find(f=>f.id===selected)?.folder||''; panel = 'file'; }
     else if (action === 'import') { importApp = el.dataset.app; chosen = [0,1,2]; panel = 'import'; }
     else if (action === 'folder') panel = 'folder';
     else if (action === 'scan' || action === 'phone') panel = action;
@@ -120,14 +131,7 @@ export function bindLibrary(root, redraw, active, notify = () => {}) {
     if(e.target.id==='lib-keep-file'){const file=allFiles().find(f=>f.id===selected);db.files=db.files.filter(f=>f.id!==selected);db.files.push({...file,keepInPlace:e.target.checked});save();return;}
     if(e.target.id==='lib-keep-folder'){db.lockedFolders=e.target.checked?[...new Set([...(db.lockedFolders||[]),folder])]:(db.lockedFolders||[]).filter(f=>f!==folder);save();return;}
     if (e.target.matches('[data-lib-import]')) { const i = Number(e.target.dataset.libImport); chosen = e.target.checked ? [...chosen,i] : chosen.filter(n => n !== i); root.querySelector('[data-lib="import-confirm"]').disabled = !chosen.length; return; }
-    if (e.target.id === 'lib-file-folder') {
-      const file = allFiles().find(f => f.id === selected), destination=e.target.value;
-      if(!file||(file.folder||'')===destination)return;
-      const storageKey=KEY,change={id:file.id,from:file.folder||'',to:destination};
-      db.files=db.files.filter(f=>f.id!==file.id);db.files.push({...file,folder:destination});save();panel='';redraw();
-      notify(`Moved to ${destination||'My files'}`,()=>{if(workspaceKey('speqq-library-v1')!==storageKey)return false;syncLibrary();db=undoOrganization(db,[change]);save();return true;});
-      return;
-    }
+    if (e.target.id === 'lib-file-folder') {pendingFolder=e.target.value;return;}
     if (!['lib-upload','lib-picture','lib-camera'].includes(e.target.id)) return;
     const errors = [];
     for (const file of [...e.target.files]) {
@@ -143,5 +147,5 @@ export function bindLibrary(root, redraw, active, notify = () => {}) {
     e.preventDefault(); const name = String(new FormData(e.target).get('folderName')).trim();
     if (!name) return; if (!folders().includes(name)) db.folders.push(name); save(); panel = ''; redraw();
   }, opts);
-  root.addEventListener('keydown', e => { if (e.key === 'Escape' && (menu || panel)) { menu = false; panel = ''; redraw(); } }, opts);
+  root.addEventListener('keydown', e => { if (e.key === 'Escape' && (menu || panel)) { menu = false; panel = ''; pendingFolder=null; redraw(); } }, opts);
 }
