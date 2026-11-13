@@ -21,6 +21,16 @@ The build produces a static `dist/` directory that can be served by any static h
 
 ## Included
 
+### Student onboarding scaffold
+
+Open `http://127.0.0.1:5173/#Onboarding`, or choose **Set up Speqq for studying** on Home.
+
+The five-step student flow collects study context, a starting goal, courses, and optional source preferences or files; demonstrates a connection between two sample courses; and opens a personalized study space at `#Study`. Draft progress resumes on this device, independently of the original workspace. Markdown/text contents are stored locally; PDFs and photos are listed only. The example connection is explicitly sample-based. Direct source connections, OCR, phone scanning, AI analysis, and scheduled review notifications remain future work.
+
+This draft focuses on STEM/pre-med students and a first experience connecting concepts across semesters. It uses **routine** rather than **agent** in the student space. The original workspace remains available at `#Home`.
+
+### Original workspace
+
 - Dark sidebar, dotted canvas, home summary and rotating Today cards.
 - Inbox with search, filters, read state and details.
 - Goals with expandable context and suggested questions.

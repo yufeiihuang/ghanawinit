@@ -1,5 +1,6 @@
 import { navGroups, shortcuts, today, initialData, filterItems, calendarCells } from './data.js';
 import { icon, brand } from './icons.js';
+import { renderStudentRoute } from './onboarding.js';
 
 const STORAGE='speqq-umami-v1';
 let db;
@@ -46,7 +47,7 @@ function toolbar(){
  return `<div class="toolbar"><label class="search">${icon('search',15)}<input id="list-search" aria-label="Search ${state.page.toLowerCase()}" placeholder="Search ${state.page.toLowerCase()}" value="${attr(state.query)}" autocomplete="off"></label><span class="spacer"></span>${selection}${ib('filter','filter','Filter')}${ib('sort','sort','Sort')}${actionNames[state.page]?button(icon('plus',15)+actionNames[state.page],'new','primary'):''}</div>${state.filter!=='All'?`<div class="active-filter">${button(esc(state.filter)+' ×','clear-filter','badge')}</div>`:''}`;
 }
 function home(){
- return `<div class="home"><div class="greeting"><div class="eyebrow"><span class="workspace-logo">◒</span> ${esc(db.workspace)} <span>·</span> Wednesday, Nov 11</div><h1>Good evening, ${esc(db.profile.first)}</h1><p>Sprint planning at 4. v4.13 ships tomorrow with one<br class="desktop-break"> review left, and the Milestone 2 demo is due Friday.</p></div><div class="today-head"><strong>Today <span class="muted">${today.length}</span></strong><span class="spacer"></span>${button(icon('Calendar',14)+' Calendar','open-calendar','calendar-link')}${ib('left','carousel-prev','Previous cards')}${ib('right','carousel-next','Next cards')}</div><div class="today-cards">${today.slice(state.carousel,state.carousel+3).map((r,i)=>`<article class="today-card" tabindex="0" data-action="today" data-index="${state.carousel+i}"><div class="card-source">${brand(r[0])}<span>${r[1]}</span>${button(icon('check',12),'dismiss-today','card-check',`data-index="${state.carousel+i}" aria-label="Dismiss ${attr(r[2])}"`)}</div><h3>${esc(r[2])}</h3><footer><span class="status-dot ${r[5]}">${esc(r[3])}</span><span>${esc(r[4])}</span></footer></article>`).join('')}</div></div>`;
+ return `<div class="home"><a class="student-entry" href="#Onboarding">${icon('Memory',15)} Set up Speqq for studying ${icon('right',13)}</a><div class="greeting"><div class="eyebrow"><span class="workspace-logo">◒</span> ${esc(db.workspace)} <span>·</span> Wednesday, Nov 11</div><h1>Good evening, ${esc(db.profile.first)}</h1><p>Sprint planning at 4. v4.13 ships tomorrow with one<br class="desktop-break"> review left, and the Milestone 2 demo is due Friday.</p></div><div class="today-head"><strong>Today <span class="muted">${today.length}</span></strong><span class="spacer"></span>${button(icon('Calendar',14)+' Calendar','open-calendar','calendar-link')}${ib('left','carousel-prev','Previous cards')}${ib('right','carousel-next','Next cards')}</div><div class="today-cards">${today.slice(state.carousel,state.carousel+3).map((r,i)=>`<article class="today-card" tabindex="0" data-action="today" data-index="${state.carousel+i}"><div class="card-source">${brand(r[0])}<span>${r[1]}</span>${button(icon('check',12),'dismiss-today','card-check',`data-index="${state.carousel+i}" aria-label="Dismiss ${attr(r[2])}"`)}</div><h3>${esc(r[2])}</h3><footer><span class="status-dot ${r[5]}">${esc(r[3])}</span><span>${esc(r[4])}</span></footer></article>`).join('')}</div></div>`;
 }
 function rows(){
  let list=filterItems(db[dataKey()]||[],state.query);
@@ -149,6 +150,7 @@ function modal(){
  return `<div class="modal-backdrop" data-action="close-modal"></div><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="dialog-heading"><h2 id="dialog-title">${esc(title)}</h2>${ib('close','close-modal','Close dialog')}</div><form id="edit-form"><label>${type==='invite'?'Email address':type==='add-tag'?'Tag name':type==='add-tab'?'Tab name':'Name'}<input name="title" aria-label="${type==='invite'?'Email address':'Name'}" placeholder="${type==='invite'?'name@company.com':title}" value="${attr(m.value||'')}" ${type==='invite'?'type="email"':''} required autofocus></label>${['create','event','invite'].includes(type)?`<label>${type==='invite'?'Role':'Description'}${type==='invite'?'<select name="role"><option>Member</option><option>Admin</option></select>':'<textarea name="description" rows="3" placeholder="Add a description…"></textarea>'}</label>`:''}${type==='event'?`<div class="form-columns"><label>Date<input type="date" name="date" value="2026-11-11" required></label><label>Type<select name="eventType">${['Meeting','Release','Milestone','Spec','Goal','Launch'].map(t=>`<option>${t}</option>`).join('')}</select></label></div>`:''}<div class="dialog-footer">${button('Cancel','close-modal','subtle')}<button class="primary" type="submit">${['rename','add-tag','add-tab'].includes(type)?'Save':type==='invite'?'Invite':'Create'}</button></div></form></section>`;
 }
 function render(){
+ if(renderStudentRoute(app))return;
  app.innerHTML=`${sidebar()}<main class="main ${state.sidebar?'':'full'}">${header()}<div class="main-scroll">${content()}</div>${composer()}</main>${menus()}${modal()}<div id="toast" role="status"></div>`;
  if(state.modal)setTimeout(()=>document.querySelector('#command-search,.dialog input')?.focus(),0);
  document.title=(state.detail?current()?.title:state.page)+' · '+db.workspace;
@@ -297,6 +299,7 @@ app.addEventListener('submit',e=>{
 app.addEventListener('keydown',e=>{const el=e.target.closest('[data-action]');if((e.key==='Enter'||e.key===' ')&&el&&el.tagName!=='BUTTON'&&!e.target.isContentEditable){e.preventDefault();el.click();}});
 let gTime=0;
 document.addEventListener('keydown',e=>{
+ if(['#Onboarding','#Study'].includes(location.hash))return;
  const typing=/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable;
  if(e.key==='Escape'){if(state.modal){state.modal=null;render();}else if(state.menu){state.menu=null;render();}else if(state.chat){state.chat=false;render();}return;}
  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();state.modal={type:'commands'};render();return;}
@@ -309,7 +312,7 @@ document.addEventListener('keydown',e=>{
  if(e.key.toLowerCase()==='g'){gTime=Date.now();return;}
  if(Date.now()-gTime<1200&&shortcuts[e.key.toLowerCase()]){navigate(shortcuts[e.key.toLowerCase()]);gTime=0;}
 });
-window.addEventListener('hashchange',()=>{const [p,id]=location.hash.slice(1).split('/');if(navGroups.some(g=>g[1].includes(p)))navigate(p,id||null);});
+window.addEventListener('hashchange',()=>{const [p,id]=location.hash.slice(1).split('/');if(['Onboarding','Study'].includes(p)){render();return;}if(navGroups.some(g=>g[1].includes(p)))navigate(p,id||null);});
 const [initialPage,initialId]=location.hash.slice(1).split('/');
 if(navGroups.some(g=>g[1].includes(initialPage))){state.page=initialPage;state.detail=initialId||null;}
 render();
