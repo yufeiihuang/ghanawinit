@@ -54,13 +54,21 @@ export function renderLibrary() {
 }
 export function bindLibrary(root, redraw, active) {
   controller?.abort();
-  if (!active) return;
+  if (!active) { menu = false; panel = ''; return; }
   controller = new AbortController();
   const opts = { signal: controller.signal };
+  const dismissMenu = () => {
+    menu = false;
+    root.querySelector('.lib-add-menu')?.remove();
+    root.querySelector('[aria-label="Add to Library"]')?.setAttribute('aria-expanded', 'false');
+  };
+  document.addEventListener('pointerdown', e => {
+    if (menu && !e.target.closest('.lib-add-wrap')) dismissMenu();
+  }, opts);
   root.addEventListener('click', e => {
     const el = e.target.closest('[data-lib]'); if (!el) return;
     const action = el.dataset.lib;
-    if (['upload','picture','camera'].includes(action)) { root.querySelector(`#lib-${action}`).click(); return; }
+    if (['upload','picture','camera'].includes(action)) { dismissMenu(); root.querySelector(`#lib-${action}`).click(); return; }
     if (action === 'new') menu = !menu;
     else if (action === 'close') panel = '';
     else if (action === 'view') grid = !grid;
