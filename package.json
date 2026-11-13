@@ -1,0 +1,14 @@
+{
+  "name": "ghanawinit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local recreation of the Speqq Umami workspace prototype",
+  "scripts": {
+    "dev": "node server.mjs",
+    "start": "node server.mjs",
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
