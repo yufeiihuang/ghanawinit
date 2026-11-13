@@ -4,7 +4,7 @@ import { newDraft, ONBOARDING_KEY } from '../src/onboarding-state.js';
 
 test('demo connection imports selected courses, saves connection and deduplicates courses', async () => {
   let saved = JSON.stringify({ ...newDraft(), role: 'Student', step: 2, courses: ['General Chemistry'] });
-  globalThis.localStorage = { getItem: () => saved, setItem(key, value) { assert.equal(key, ONBOARDING_KEY); saved = value; } };
+  globalThis.localStorage = { getItem: key => key==='speqq-active-workspace'?'umami':saved, setItem(key, value) { assert.equal(key, ONBOARDING_KEY); saved = value; } };
   globalThis.location = { hash: '#Onboarding' };
   globalThis.document = { title: '' };
   const handlers = {};

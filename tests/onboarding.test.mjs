@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { ACTIVE_WORKSPACE_KEY } from '../src/workspace-storage.js';
 import { newDraft, readDraft, canContinue, addCourse, toggleSource, needsOnboarding, ONBOARDING_KEY } from '../src/onboarding-state.js';
 
 test('setup requires study context and one goal, but never requires migration', () => {
@@ -20,7 +21,7 @@ test('setup requires study context and one goal, but never requires migration', 
 
 test('saved progress resumes and malformed storage falls back safely', () => {
   let raw = JSON.stringify({ name: 'Maya', major: 'Biology', step: 3, courses: ['Chemistry'] });
-  const storage = { getItem(key) { assert.equal(key, ONBOARDING_KEY); return raw; } };
+  const storage = { getItem(key) { if(key===ACTIVE_WORKSPACE_KEY)return 'umami';assert.equal(key, ONBOARDING_KEY); return raw; } };
   assert.equal(readDraft(storage).step, 3);
   assert.deepEqual(readDraft(storage).courses, ['Chemistry']);
   raw = '{broken';

@@ -10,7 +10,7 @@ import { renderStudentRoute, openCustomization, reloadOnboarding } from './onboa
 import { readDraft, needsOnboarding } from './onboarding-state.js';
 
 let STORAGE=workspaceKey('speqq-umami-v1');
-if(activeWorkspace()==='student')seedStudentWorkspace(localStorage);
+if(activeWorkspace()==='student'){seedStudentWorkspace(localStorage);reloadOnboarding();}
 let db;
 try { db=JSON.parse(localStorage.getItem(STORAGE)) || (activeWorkspace()==='student'?studentWorkspace():initialData()); } catch { db=activeWorkspace()==='student'?studentWorkspace():initialData(); }
 // Add connectors introduced after a browser first saved its workspace.
