@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { newDraft, ONBOARDING_KEY } from '../src/onboarding-state.js';
 
 test('demo connection imports selected courses, saves connection and deduplicates courses', async () => {
-  let saved = JSON.stringify({ ...newDraft(), step: 2, courses: ['General Chemistry'] });
+  let saved = JSON.stringify({ ...newDraft(), role: 'Student', step: 2, courses: ['General Chemistry'] });
   globalThis.localStorage = { getItem: () => saved, setItem(key, value) { assert.equal(key, ONBOARDING_KEY); saved = value; } };
   globalThis.location = { hash: '#Onboarding' };
   globalThis.document = { title: '' };

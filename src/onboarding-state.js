@@ -2,7 +2,7 @@ export const ONBOARDING_KEY = 'speqq-student-onboarding-v1';
 export const STEPS = ['About you', 'Your goal', 'Your courses', 'Try it', 'Your space'];
 
 export function newDraft() {
-  return { step: 0, name: '', role: '', major: '', year: '', goal: '', exam: '', targetDate: '', courses: [], sources: [], materials: [], transcripts: [], connections: [], completed: false, skipped: false, connectionSaved: false, routine: false };
+  return { step: 0, name: '', role: '', otherRole: '', major: '', year: '', goal: '', exam: '', targetDate: '', courses: [], sources: [], materials: [], transcripts: [], connections: [], completed: false, skipped: false, connectionSaved: false, routine: false };
 }
 
 export function readDraft(storage) {
@@ -11,7 +11,7 @@ export function readDraft(storage) {
     if (!saved || typeof saved !== 'object') return newDraft();
     const draft = { ...newDraft(), ...saved };
     draft.step = Math.max(0, Math.min(STEPS.length - 1, Math.trunc(Number(draft.step)) || 0));
-    for (const key of ['name', 'role', 'major', 'year', 'goal', 'exam', 'targetDate']) if (typeof draft[key] !== 'string') draft[key] = '';
+    for (const key of ['name', 'role', 'otherRole', 'major', 'year', 'goal', 'exam', 'targetDate']) if (typeof draft[key] !== 'string') draft[key] = '';
     for (const key of ['courses', 'sources', 'materials', 'transcripts', 'connections']) if (!Array.isArray(draft[key])) draft[key] = [];
     return draft;
   } catch { return newDraft(); }
