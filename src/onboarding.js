@@ -22,6 +22,8 @@ let importSource = '';
 let selectedCourses = [];
 let showManual = false;
 let customizing = false;
+let scanMode = '';
+const workspaceName = () => { try { return JSON.parse(localStorage.getItem('speqq-umami-v1'))?.workspace || 'Umami'; } catch { return 'Umami'; } };
 
 export function openCustomization() {
   draft.step = 0;
@@ -50,7 +52,7 @@ const courseProviders = [
 ];
 
 function notesUpload() {
-  return `<section class="ob-notes-section" aria-labelledby="ob-notes-heading"><h2 id="ob-notes-heading">Upload notes</h2><p class="ob-small">Bring lecture notes, readings, or slides</p><label class="connector-card ob-provider ob-transcript" id="ob-drop" for="ob-files"><span class="brand" aria-hidden="true">${icon('Specs', 20)}</span><span class="row-copy ob-provider-copy"><span>Add your notes</span><small>Drop files here or choose files — PDF, Markdown, text, JPG or PNG</small></span><span class="ob-upload-action">Choose files</span><input id="ob-files" type="file" multiple accept=".md,.txt,.pdf,.png,.jpg,.jpeg" aria-label="Upload notes"></label><p class="ob-small">Up to 10 files, 5 MB each</p>${draft.materials.length ? `<div class="ob-file-list">${draft.materials.map((file, i) => `<div>${icon('Specs', 14)}<span>${escape(file.name)}</span>${b(icon('close', 13), 'remove-file', 'icon-button', `data-index="${i}" aria-label="Remove ${escape(file.name)}"`)}</div>`).join('')}</div>` : ''}</section>`;
+  return `<section class="ob-notes-section" aria-labelledby="ob-notes-heading"><h2 id="ob-notes-heading">Upload notes</h2><p class="ob-small">Bring lecture notes, readings, or slides</p><label class="connector-card ob-provider ob-transcript" id="ob-drop" for="ob-files"><span class="brand" aria-hidden="true">${icon('Specs', 20)}</span><span class="row-copy ob-provider-copy"><span>Add your notes</span><small>Drop files here or choose files — PDF, Markdown, text, JPG or PNG</small></span><span class="ob-upload-action">Choose files</span><input id="ob-files" type="file" multiple accept=".md,.txt,.pdf,.png,.jpg,.jpeg" aria-label="Upload notes"></label><div class="ob-phone-entry"><p class="ob-small">Up to 10 files, 5 MB each</p>${b('Scan with your phone', 'scan-phone', 'ob-outline')}</div>${scanMode ? `<div class="ob-scan-panel" role="region" aria-label="Phone upload"><div class="ob-scan-heading"><h3>${scanMode === 'phone' ? 'Add handwritten notes' : 'Scan to add handwritten notes'}</h3>${b(icon('close', 14), 'close-scan', 'icon-button', 'aria-label="Close phone upload"')}</div>${scanMode === 'qr' ? `<div class="ob-qr-content"><img src="/src/assets/notes-upload-qr.svg" width="164" height="164" alt="QR code for the phone upload demo"><div><p>Open your phone’s camera and scan the code</p><p class="ob-small">Take a photo of your notes or choose one from your library</p>${b('Preview phone upload', 'preview-phone', 'ob-outline')}</div></div>` : `<div class="ob-phone-preview">${icon('Specs', 28)}<p>Capture a page of your notes</p><label class="ob-outline ob-camera-label">Take photo<input id="ob-camera" type="file" accept="image/*" capture="environment" aria-label="Take photo of handwritten notes"></label>${b('Use sample photo', 'sample-photo', 'ob-outline')}</div>`}</div>` : ''}${draft.materials.length ? `<div class="ob-file-list">${draft.materials.map((file, i) => `<div>${icon('Specs', 14)}<span>${escape(file.name)}</span>${b(icon('close', 13), 'remove-file', 'icon-button', `data-index="${i}" aria-label="Remove ${escape(file.name)}"`)}</div>`).join('')}</div>` : ''}</section>`;
 }
 
 function material() {
@@ -68,7 +70,7 @@ function review() {
 
 function setup() {
   const panels = [profile, goal, material, firstConnection, review];
-  return `<div class="ob-shell"><aside class="ob-sidebar">${customizing ? b(icon('left', 15) + '<span>Back to app</span>', 'exit', 'nav-item ob-return') : '<div class="ob-logo"><span class="workspace-logo">◒</span>speqq</div>'}<ol class="ob-steps" aria-label="Setup progress">${STEPS.map((title, i) => customizing && i === 3 ? '' : `<li class="${i === draft.step ? 'current' : i < draft.step ? 'done' : ''}"><button type="button" class="nav-item ${i === draft.step ? 'active' : ''}" data-ob="step" data-step="${i}" ${i === draft.step ? 'aria-current="step"' : ''}>${title}</button></li>`).join('')}</ol><div class="ob-sidebar-bottom">${customizing ? 'Customize Speqq' : 'Set up Speqq'}</div></aside><main class="ob-main"><header class="topbar"><span>${customizing ? 'Customize Speqq' : 'Set up Speqq'} <span class="ob-breadcrumb">/</span> ${STEPS[draft.step]}</span>${b(customizing ? 'Done' : 'Skip setup', 'exit', 'ob-outline')}</header><form id="ob-form" class="page ob-panel" ${customizing ? 'novalidate' : ''}><div class="ob-mobile-progress">Step ${draft.step + 1} of ${STEPS.length} — ${STEPS[draft.step]}</div><section id="ob-content" tabindex="-1">${panels[draft.step]()}</section><div class="ob-notice" role="status">${escape(notice)}</div><footer class="ob-footer">${!customizing && draft.step > 0 ? b('Back', 'back', 'ob-outline') : '<span></span>'}<div class="ob-footer-actions">${!customizing && draft.step === 2 ? b('Skip for now', 'skip', 'ob-outline') : ''}<button class="primary ob-next" type="submit" ${customizing || canContinue(draft) ? '' : 'disabled'}>${customizing ? 'Save and return' : draft.step === STEPS.length - 1 ? 'Open Speqq' : 'Continue'}</button></div></footer></form></main></div>`;
+  return `<div class="ob-shell"><aside class="ob-sidebar">${customizing ? `<div class="ob-logo"><span class="workspace-logo">◒</span>${escape(workspaceName())}</div>` + b(icon('left', 15) + '<span>Back to app</span>', 'exit', 'nav-item ob-return') : '<div class="ob-logo"><span class="workspace-logo">◒</span>speqq</div>'}<ol class="ob-steps" aria-label="Setup progress">${STEPS.map((title, i) => customizing && i === 3 ? '' : `<li class="${i === draft.step ? 'current' : i < draft.step ? 'done' : ''}"><button type="button" class="nav-item ${i === draft.step ? 'active' : ''}" data-ob="step" data-step="${i}" ${i === draft.step ? 'aria-current="step"' : ''}>${title}</button></li>`).join('')}</ol><div class="ob-sidebar-bottom">${customizing ? 'Customize Speqq' : 'Set up Speqq'}</div></aside><main class="ob-main"><header class="topbar"><span>${customizing ? 'Customize Speqq' : 'Set up Speqq'} <span class="ob-breadcrumb">/</span> ${STEPS[draft.step]}</span>${b(customizing ? 'Done' : 'Skip setup', 'exit', 'ob-outline')}</header><form id="ob-form" class="page ob-panel" ${customizing ? 'novalidate' : ''}><div class="ob-mobile-progress">Step ${draft.step + 1} of ${STEPS.length} — ${STEPS[draft.step]}</div><section id="ob-content" tabindex="-1">${panels[draft.step]()}</section><div class="ob-notice" role="status">${escape(notice)}</div><footer class="ob-footer">${!customizing && draft.step > 0 ? b('Back', 'back', 'ob-outline') : '<span></span>'}<div class="ob-footer-actions">${!customizing && draft.step === 2 ? b('Skip for now', 'skip', 'ob-outline') : ''}<button class="primary ob-next" type="submit" ${customizing || canContinue(draft) ? '' : 'disabled'}>${customizing ? 'Save and return' : draft.step === STEPS.length - 1 ? 'Open Speqq' : 'Continue'}</button></div></footer></form></main></div>`;
 }
 
 function study() {
@@ -93,7 +95,8 @@ async function loadFiles(files, redraw) {
 
 export function renderStudentRoute(root) {
   const route = location.hash.slice(1).split('/')[0];
-  customizing = location.hash === '#Onboarding/customize';
+  customizing = ['#Onboarding/customize', '#Onboarding/phone'].includes(location.hash);
+  if (location.hash === '#Onboarding/phone') { draft.step = 2; scanMode = 'phone'; }
   if (!['Onboarding', 'Study'].includes(route)) { controller?.abort(); return false; }
   controller?.abort();
   controller = new AbortController();
@@ -134,6 +137,13 @@ export function renderStudentRoute(root) {
       notice = `${selectedCourses.length} courses added`;
       importSource = ''; selectedCourses = [];
     }
+    else if (action === 'scan-phone') scanMode = scanMode === 'qr' ? '' : 'qr';
+    else if (action === 'preview-phone') scanMode = 'phone';
+    else if (action === 'close-scan') scanMode = '';
+    else if (action === 'sample-photo') {
+      if (!draft.materials.some(file => file.name === 'Handwritten notes.jpg') && draft.materials.length < 10) draft.materials.push({ name: 'Handwritten notes.jpg', size: 0, content: '' });
+      scanMode = ''; notice = 'Handwritten notes added';
+    }
     else if (action === 'manual') showManual = !showManual;
     else if (action === 'skip') { draft.step++; importSource = ''; notice = ''; }
     else if (action === 'source') toggleSource(draft, el.dataset.value);
@@ -160,7 +170,7 @@ export function renderStudentRoute(root) {
       const confirm = root.querySelector('[data-ob="confirm-import"]');
       confirm.disabled = !selectedCourses.length;
     }
-    if (e.target.id === 'ob-files') loadFiles(e.target.files, draw);
+    if (['ob-files', 'ob-camera'].includes(e.target.id)) loadFiles(e.target.files, draw);
     if (e.target.id === 'ob-transcript') {
       const file = e.target.files[0];
       if (!file) return;

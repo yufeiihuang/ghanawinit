@@ -63,3 +63,7 @@ Edits persist in the current browser under `speqq-umami-v1`. Clear that local st
 - `tests/data.test.mjs`: data isolation, search and calendar edge cases.
 
 Keyboard shortcuts: `G` then `H/I/O/S/M/A/K/C/T/L` opens the corresponding sidebar section. `⌘/Ctrl K` opens commands, `⌘/Ctrl J` opens Ask Speqq, `⌘/Ctrl B` toggles the sidebar, and `⌘/Ctrl N` creates a spec. `Escape` dismisses dialogs and panels.
+
+### Handwritten note scan demo
+
+Under Upload notes, Scan with your phone opens a QR panel. Preview phone upload shows a camera/file picker and a sample-photo action. The bundled QR encodes the local `http://127.0.0.1:5173/#Onboarding/phone` demo route; it is not a remote upload session. Cross-device transfer and handwriting recognition are simulated for the case-competition prototype. Actual file selections use the existing local note-file handling.
