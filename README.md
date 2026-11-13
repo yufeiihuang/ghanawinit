@@ -23,7 +23,7 @@ The build produces a static `dist/` directory that can be served by any static h
 
 ### Student onboarding scaffold
 
-New visitors enter onboarding before reaching the main app, including when opening a workspace deep link. **Skip setup** is available at every step and opens Home immediately. Completing setup also opens Home. Either choice is remembered on this device, and setup can be revisited from Home.
+New visitors enter onboarding before reaching the main app, including when opening a workspace deep link. **Skip setup** is available at every step and opens Home immediately. Completing setup also opens Home. Either choice is remembered on this device, and setup can be revisited from Home. The bottom-left profile menu includes **Customize Speqq**, which opens saved settings with direct section navigation and **Save and return**, without repeating the demo step.
 
 The five-step flow first asks whether the user is a Student, Educator, Researcher, or Other, then collects study context, a starting goal, courses, and optional source preferences or files; demonstrates a connection between two sample courses; and opens a personalized study space at `#Study`. Draft progress resumes on this device, independently of the original workspace. Markdown/text contents are stored locally; PDFs and photos are listed only. The example connection is explicitly sample-based. Direct source connections, OCR, phone scanning, AI analysis, and scheduled review notifications remain future work.
 

@@ -21,6 +21,15 @@ let showReason = false;
 let importSource = '';
 let selectedCourses = [];
 let showManual = false;
+let customizing = false;
+
+export function openCustomization() {
+  draft.step = 0;
+  notice = '';
+  importSource = '';
+  persist();
+  location.hash = 'Onboarding/customize';
+}
 const sampleCourses = ['General Chemistry', 'Cell Biology', 'Calculus I', 'Introduction to Psychology'];
 const persist = () => localStorage.setItem(ONBOARDING_KEY, JSON.stringify(draft));
 const b = (text, action, classes = '', attrs = '') => `<button type="button" class="${classes}" data-ob="${action}" ${attrs}>${text}</button>`;
@@ -55,7 +64,7 @@ function review() {
 
 function setup() {
   const panels = [profile, goal, material, firstConnection, review];
-  return `<div class="ob-shell"><aside class="ob-sidebar"><div class="ob-logo"><span class="workspace-logo">◒</span>speqq</div><ol class="ob-steps" aria-label="Setup progress">${STEPS.map((title, i) => `<li class="${i === draft.step ? 'current' : i < draft.step ? 'done' : ''}"><button type="button" class="nav-item ${i === draft.step ? 'active' : ''}" data-ob="step" data-step="${i}" ${i === draft.step ? 'aria-current="step"' : ''}>${title}</button></li>`).join('')}</ol><div class="ob-sidebar-bottom">Set up Speqq</div></aside><main class="ob-main"><header class="topbar"><span>Set up Speqq <span class="ob-breadcrumb">/</span> ${STEPS[draft.step]}</span>${b('Skip setup', 'exit', 'ob-outline')}</header><form id="ob-form" class="page ob-panel"><div class="ob-mobile-progress">Step ${draft.step + 1} of ${STEPS.length} — ${STEPS[draft.step]}</div><section id="ob-content" tabindex="-1">${panels[draft.step]()}</section><div class="ob-notice" role="status">${escape(notice)}</div><footer class="ob-footer">${draft.step > 0 ? b('Back', 'back', 'ob-outline') : '<span></span>'}<div class="ob-footer-actions">${draft.step === 2 ? b('Skip for now', 'skip', 'ob-outline') : ''}<button class="primary ob-next" type="submit" ${canContinue(draft) ? '' : 'disabled'}>${draft.step === STEPS.length - 1 ? 'Open Speqq' : 'Continue'}</button></div></footer></form></main></div>`;
+  return `<div class="ob-shell"><aside class="ob-sidebar"><div class="ob-logo"><span class="workspace-logo">◒</span>speqq</div><ol class="ob-steps" aria-label="Setup progress">${STEPS.map((title, i) => customizing && i === 3 ? '' : `<li class="${i === draft.step ? 'current' : i < draft.step ? 'done' : ''}"><button type="button" class="nav-item ${i === draft.step ? 'active' : ''}" data-ob="step" data-step="${i}" ${i === draft.step ? 'aria-current="step"' : ''}>${title}</button></li>`).join('')}</ol><div class="ob-sidebar-bottom">${customizing ? 'Customize Speqq' : 'Set up Speqq'}</div></aside><main class="ob-main"><header class="topbar"><span>${customizing ? 'Customize Speqq' : 'Set up Speqq'} <span class="ob-breadcrumb">/</span> ${STEPS[draft.step]}</span>${b(customizing ? 'Done' : 'Skip setup', 'exit', 'ob-outline')}</header><form id="ob-form" class="page ob-panel" ${customizing ? 'novalidate' : ''}><div class="ob-mobile-progress">Step ${draft.step + 1} of ${STEPS.length} — ${STEPS[draft.step]}</div><section id="ob-content" tabindex="-1">${panels[draft.step]()}</section><div class="ob-notice" role="status">${escape(notice)}</div><footer class="ob-footer">${!customizing && draft.step > 0 ? b('Back', 'back', 'ob-outline') : '<span></span>'}<div class="ob-footer-actions">${!customizing && draft.step === 2 ? b('Skip for now', 'skip', 'ob-outline') : ''}<button class="primary ob-next" type="submit" ${customizing || canContinue(draft) ? '' : 'disabled'}>${customizing ? 'Save and return' : draft.step === STEPS.length - 1 ? 'Open Speqq' : 'Continue'}</button></div></footer></form></main></div>`;
 }
 
 function study() {
@@ -80,11 +89,12 @@ async function loadFiles(files, redraw) {
 
 export function renderStudentRoute(root) {
   const route = location.hash.slice(1).split('/')[0];
+  customizing = location.hash === '#Onboarding/customize';
   if (!['Onboarding', 'Study'].includes(route)) { controller?.abort(); return false; }
   controller?.abort();
   controller = new AbortController();
   const { signal } = controller;
-  const draw = (focus = false) => { root.innerHTML = route === 'Study' ? study() : setup(); document.title = route === 'Study' ? 'Your study space · Speqq' : `Set up Speqq · ${STEPS[draft.step]} · Speqq`; if (focus) root.querySelector('#ob-content')?.focus(); };
+  const draw = (focus = false) => { root.innerHTML = route === 'Study' ? study() : setup(); document.title = route === 'Study' ? 'Your study space · Speqq' : `${customizing ? 'Customize Speqq' : 'Set up Speqq'} · ${STEPS[draft.step]} · Speqq`; if (focus) root.querySelector('#ob-content')?.focus(); };
   draw();
   root.addEventListener('input', e => {
     const key = e.target.name;
@@ -93,12 +103,13 @@ export function renderStudentRoute(root) {
       persist();
       if (key === 'role') root.querySelector('.ob-year-field').hidden = draft.role !== 'Student';
       const next = root.querySelector('button[type="submit"]');
-      if (next) next.disabled = !canContinue(draft);
+      if (next) next.disabled = !customizing && !canContinue(draft);
     }
   }, { signal });
   root.addEventListener('submit', e => {
     if (e.target.id !== 'ob-form') return;
     e.preventDefault();
+    if (customizing) { if (!draft.completed) draft.skipped = true; persist(); location.hash = 'Home'; return; }
     if (!canContinue(draft)) return;
     notice = '';
     if (draft.step === STEPS.length - 1) { draft.completed = true; draft.skipped = false; persist(); location.hash = 'Home'; return; }
@@ -110,7 +121,7 @@ export function renderStudentRoute(root) {
     const action = el.dataset.ob;
     if (action === 'goal') { draft.goal = el.dataset.value; if (draft.goal !== 'Prepare for a big exam') { draft.exam = ''; draft.targetDate = ''; } }
     else if (action === 'revisit') { draft.step = Number(el.dataset.step); persist(); return; }
-    else if (action === 'exit') { draft.skipped = true; persist(); location.hash = 'Home'; return; }
+    else if (action === 'exit') { if (!draft.completed) draft.skipped = true; persist(); location.hash = 'Home'; return; }
     else if (action === 'connect') { importSource = el.dataset.value; selectedCourses = [...sampleCourses]; notice = ''; }
     else if (action === 'cancel-import') { importSource = ''; selectedCourses = []; }
     else if (action === 'confirm-import') {

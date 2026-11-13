@@ -1,6 +1,6 @@
 import { navGroups, shortcuts, today, initialData, filterItems, calendarCells } from './data.js';
 import { icon, brand } from './icons.js';
-import { renderStudentRoute } from './onboarding.js';
+import { renderStudentRoute, openCustomization } from './onboarding.js';
 import { readDraft, needsOnboarding } from './onboarding-state.js';
 
 const STORAGE='speqq-umami-v1';
@@ -131,7 +131,7 @@ function menus(){
  let options=[];
  if(m.type==='filter') options=['All',...(state.page==='Inbox'?['Unread','Read','Alert','Review','Mention','Approval']:state.page==='Goals'?['At risk','Off track','Hit']:state.page==='Connectors'?['Connected','Available']:state.page==='Logs'?['Running','Failed','Completed']:state.page==='Team'?['Admin','Member','Invited']:['Draft','In review','Approved'])].map(t=>[t,'choose-filter',`data-filter="${t}"`]);
  else if(m.type==='workspace')options=[[db.workspace+'  ✓','close-menu'],['Workspace settings','workspace-settings'],['Create workspace','create-workspace']];
- else if(m.type==='account')options=[['Sam Rivera · sam@umami.is','close-menu'],['Profile','profile'],['Settings','workspace-settings']];
+ else if(m.type==='account')options=[['Sam Rivera · sam@umami.is','close-menu'],['Profile','profile'],['Customize Speqq','customize-speqq'],['Settings','workspace-settings']];
  else if(m.type==='quick')options=[['New spec','quick-spec'],['New goal','quick-goal'],['New memory','quick-memory'],['New agent','quick-agent']];
  else if(m.type==='ask')options=[['Search all sources  ✓','close-menu'],['Include workspace memory  ✓','close-menu']];
  else if(m.type==='attach')options=[['Add a spec','attach-spec'],['Add project memory','attach-memory'],['Search connected sources','attach-connectors']];
@@ -196,6 +196,7 @@ app.addEventListener('click',async e=>{
  case 'close-menu':state.menu=null;render();break;
  case 'close-modal':state.modal=null;render();break;
  case 'workspace-settings':state.page='Settings';state.settingsTab='General';state.menu=null;render();break;
+ case 'customize-speqq':state.menu=null;state.modal=null;openCustomization();break;
  case 'profile':navigate('Settings');state.settingsTab='Profile';render();break;
  case 'new':create();break;
  case 'create-workspace':state.modal={type:'workspace',title:'Create workspace'};state.menu=null;render();break;
@@ -304,7 +305,7 @@ app.addEventListener('submit',e=>{
 app.addEventListener('keydown',e=>{const el=e.target.closest('[data-action]');if((e.key==='Enter'||e.key===' ')&&el&&el.tagName!=='BUTTON'&&!e.target.isContentEditable){e.preventDefault();el.click();}});
 let gTime=0;
 document.addEventListener('keydown',e=>{
- if(['#Onboarding','#Study'].includes(location.hash))return;
+ if(['Onboarding','Study'].includes(location.hash.slice(1).split('/')[0]))return;
  const typing=/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable;
  if(e.key==='Escape'){if(state.modal){state.modal=null;render();}else if(state.menu){state.menu=null;render();}else if(state.chat){state.chat=false;render();}return;}
  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();state.modal={type:'commands'};render();return;}
