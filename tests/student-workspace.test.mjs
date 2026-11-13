@@ -32,3 +32,16 @@ test('legacy sample name migrates to Yufei while keeping files and edits',()=>{
  assert.equal(saved.profile.first,'Yufei');assert.equal(saved.profile.last,'Huang');assert.equal(saved.workspace,'Yufei’s study space');
  assert.equal(saved.goals[0].title,'My custom goal');assert.equal(values.get('speqq-library-v1-student'),'my library');
 });
+
+test('student Logs starts hidden and can be explicitly enabled without being hidden again',()=>{
+ const fresh=studentWorkspace();assert(fresh.sidebar.hidden.includes('Logs'));
+ delete fresh.studentSidebarDefaultsVersion;fresh.sidebar={favorites:['Library'],hidden:['Skills']};
+ const values=new Map([['speqq-umami-v1-student',JSON.stringify(fresh)],['speqq-umami-v1','unchanged Umami']]);
+ const storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v)};
+ seedStudentWorkspace(storage);
+ const migrated=JSON.parse(values.get('speqq-umami-v1-student'));
+ assert.deepEqual(migrated.sidebar,{favorites:['Library'],hidden:['Skills','Logs']});
+ migrated.sidebar.hidden=['Skills'];values.set('speqq-umami-v1-student',JSON.stringify(migrated));
+ seedStudentWorkspace(storage);assert.deepEqual(JSON.parse(values.get('speqq-umami-v1-student')).sidebar.hidden,['Skills']);
+ assert.equal(values.get('speqq-umami-v1'),'unchanged Umami');
+});

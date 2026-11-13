@@ -39,6 +39,8 @@ export function studentWorkspace() {
     {id:'student-event-4',day:20,title:'Weekly course review',type:'Meeting',description:'Revisit this week’s notes and save useful connections'}
   ];
   db.logs = []; db.trash = [];
+  db.sidebar={favorites:[],hidden:['Logs']};
+  db.studentSidebarDefaultsVersion=1;
   return db;
 }
 export function studentFiles() {
@@ -53,6 +55,12 @@ export function seedStudentWorkspace(storage) {
   if (!storage.getItem(key)) storage.setItem(key,JSON.stringify(studentWorkspace()));
   try {
     const saved=JSON.parse(storage.getItem(key));
+    if(saved?.kind==='student'&&!saved.studentSidebarDefaultsVersion){
+      const prefs=saved.sidebar||{},favorites=Array.isArray(prefs.favorites)?prefs.favorites:[],hidden=Array.isArray(prefs.hidden)?prefs.hidden:[];
+      saved.sidebar={...prefs,favorites,hidden:favorites.includes('Logs')?hidden:[...new Set([...hidden,'Logs'])]};
+      saved.studentSidebarDefaultsVersion=1;
+      storage.setItem(key,JSON.stringify(saved));
+    }
     if(saved?.profile?.first==='Maya'&&saved.profile.last==='Chen'){
       saved.profile={...saved.profile,first:'Yufei',last:'Huang',username:'yufei'};
       if(saved.workspace==='Maya’s study space')saved.workspace='Yufei’s study space';
