@@ -1,3 +1,4 @@
+import { collabSeed } from './collab.js';
 import { initialData } from './data.js';
 export const studentToday = [
   ['Canvas','Canvas · Cell Biology','Review membrane transport before Thursday','Exam prep','25m','yellow'],
@@ -27,6 +28,7 @@ export function studentWorkspace() {
     {id:'student-agent-3',title:'Connect my courses',trigger:'New notes added',description:'Suggest links between chemistry and biology',status:'Not run yet',on:true}
   ];
   db.agents.forEach(agent=>{agent.instructions=agent.description+'. Use the student’s course notes and cite the relevant material. Keep suggestions concise and practical.';});
+  db.agents[0].libraryAccess={permission:'organize',folders:['General Chemistry']};
   db.skills = ['Summarize lecture notes','Practice questions','Connect concepts','Plan a study session'].map((title,i)=>({id:`student-skill-${i}`,title,author:'Speqq',on:true}));
   const connected = new Set(['Canvas','Google Drive','Google Calendar','Notion']);
   db.connectors = db.connectors.map(c=>({...c,connected:connected.has(c.title)}));
@@ -43,9 +45,9 @@ export function studentWorkspace() {
 }
 export function studentFiles() {
   return {folders:['Cell Biology','General Chemistry','Calculus I'],files:[
-    {id:'student-file-1',name:'Membrane transport.md',folder:'Cell Biology',source:'Canvas',date:'Nov 12',size:420,content:'# Membrane transport\n\nPassive transport moves substances down a concentration gradient. Active transport requires energy to move substances against a gradient.\n\nReview: how does the sodium-potassium pump maintain membrane potential?'},
-    {id:'student-file-2',name:'Electrochemical gradients.md',folder:'General Chemistry',source:'Notability',date:'Nov 11',size:360,content:'# Electrochemical gradients\n\nAn electrochemical gradient combines concentration and electrical potential differences.\n\nConnection: protons flowing through ATP synthase help convert stored energy into ATP.'},
-    {id:'student-file-3',name:'Integration practice.md',folder:'Calculus I',source:'Upload',date:'Nov 10',size:250,content:'# Integration practice\n\nReview substitution, definite integrals, and the fundamental theorem of calculus.\n\nPractice: explain the relationship between area under a curve and accumulated change.'}
+    {id:'student-file-1',name:'Membrane transport.md',folder:'Calculus I',source:'Canvas',date:'Nov 12',size:420,content:'# Membrane transport\n\nPassive transport moves substances down a concentration gradient. Active transport requires energy to move substances against a gradient.\n\nReview: how does the sodium-potassium pump maintain membrane potential?'},
+    {id:'student-file-2',name:'Electrochemical gradients.md',keepInPlace:true,folder:'Cell Biology',source:'Notability',date:'Nov 11',size:360,content:'# Electrochemical gradients\n\nAn electrochemical gradient combines concentration and electrical potential differences.\n\nConnection: protons flowing through ATP synthase help convert stored energy into ATP.'},
+    {id:'student-file-3',name:'Integration practice.md',folder:'Cell Biology',source:'Upload',date:'Nov 10',size:250,content:'# Integration practice\n\nReview substitution, definite integrals, and the fundamental theorem of calculus.\n\nPractice: explain the relationship between area under a curve and accumulated change.'}
   ]};
 }
 export function seedStudentWorkspace(storage) {
@@ -60,6 +62,14 @@ export function seedStudentWorkspace(storage) {
       storage.setItem(key,JSON.stringify(saved));
     }
   } catch {}
+  // Shared starter state mirrors the student demo selected for public visitors.
+  // This is a preconfigured prototype identity, not real email verification.
+  if(!storage.getItem('speqq-collab-v1-student')) {
+    const community=collabSeed(true);
+    community.schoolEmail='yh5154@nyu.edu';
+    community.schoolVerification={email:'yh5154@nyu.edu',status:'verified',demo:true};
+    storage.setItem('speqq-collab-v1-student',JSON.stringify(community));
+  }
   if (!storage.getItem('speqq-library-v1-student')) storage.setItem('speqq-library-v1-student',JSON.stringify(studentFiles()));
   if (!storage.getItem('speqq-student-onboarding-v1-student')) storage.setItem('speqq-student-onboarding-v1-student',JSON.stringify({role:'Student',major:'Biology',year:'Second year',goal:'Connect what I learn',courses:['Cell Biology','General Chemistry','Calculus I'],completed:true,step:0}));
 }

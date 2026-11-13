@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { studentWorkspace, studentFiles, seedStudentWorkspace } from '../src/student-workspace.js';
-import { workspaceKey, ACTIVE_WORKSPACE_KEY } from '../src/workspace-storage.js';
+import { workspaceKey, activeWorkspace, ACTIVE_WORKSPACE_KEY } from '../src/workspace-storage.js';
 test('seeding a student workspace preserves Umami and existing student edits', () => {
   const data = new Map([['speqq-umami-v1','original workspace'],['speqq-library-v1','original files'],['speqq-student-onboarding-v1','original setup']]);
   const storage = {getItem:key=>data.get(key)||null,setItem:(key,value)=>data.set(key,value)};
@@ -12,6 +12,8 @@ test('seeding a student workspace preserves Umami and existing student edits', (
   assert.equal(JSON.parse(data.get('speqq-umami-v1-student')).profile.first,'Yufei');
   data.set('speqq-umami-v1-student','student changes'); seedStudentWorkspace(storage);
   assert.equal(data.get('speqq-umami-v1-student'),'student changes');
+  assert.equal(workspaceKey('files',storage),'files-student');
+  data.set(ACTIVE_WORKSPACE_KEY,'umami');
   assert.equal(workspaceKey('files',storage),'files');
   data.set(ACTIVE_WORKSPACE_KEY,'student');
   assert.equal(workspaceKey('files',storage),'files-student');
@@ -31,4 +33,27 @@ test('legacy sample name migrates to Yufei while keeping files and edits',()=>{
  seedStudentWorkspace(storage);const saved=JSON.parse(values.get('speqq-umami-v1-student'));
  assert.equal(saved.profile.first,'Yufei');assert.equal(saved.profile.last,'Huang');assert.equal(saved.workspace,'Yufei’s study space');
  assert.equal(saved.goals[0].title,'My custom goal');assert.equal(values.get('speqq-library-v1-student'),'my library');
+});
+
+test('new visitors default to the student demo while an explicit Umami choice persists',()=>{
+ const values=new Map(),storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v)};
+ assert.equal(activeWorkspace(storage),'student');seedStudentWorkspace(storage);
+ assert.equal(JSON.parse(values.get('speqq-umami-v1-student')).workspace,'Yufei’s study space');
+ assert.equal(JSON.parse(values.get('speqq-student-onboarding-v1-student')).completed,true);
+ values.set(ACTIVE_WORKSPACE_KEY,'umami');assert.equal(activeWorkspace(storage),'umami');
+});
+
+test('shared starter demo includes the selected browser file locations, protection and school community',()=>{
+ const values=new Map(),storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v)};
+ seedStudentWorkspace(storage);
+ const library=JSON.parse(values.get('speqq-library-v1-student'));
+ assert.equal(library.files.find(f=>f.name==='Membrane transport.md').folder,'Calculus I');
+ assert.equal(library.files.find(f=>f.name==='Electrochemical gradients.md').keepInPlace,true);
+ assert.equal(library.files.find(f=>f.name==='Integration practice.md').folder,'Cell Biology');
+ const collab=JSON.parse(values.get('speqq-collab-v1-student'));
+ assert.equal(collab.schoolVerification.email,'yh5154@nyu.edu');
+ assert.equal(collab.schoolVerification.demo,true);
+ assert.equal(collab.groups.filter(g=>g.joined).length,2);
+ collab.groups[0].joined=true;values.set('speqq-collab-v1-student',JSON.stringify(collab));
+ seedStudentWorkspace(storage);assert.equal(JSON.parse(values.get('speqq-collab-v1-student')).groups[0].joined,true);
 });

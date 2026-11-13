@@ -100,3 +100,10 @@ Collab includes a School tab for New York University. The prototype accepts an @
 Routine details include explicit Library file/folder scope, read-only or read-and-organize permission, a destination folder, and Ask before organizing (on by default). Run now previews the scoped moves before applying them. Applying rechecks the current access and Keep in place settings. The Undo toast is available for 15 seconds and restores folder locations without overwriting file content or later manual moves. New empty destination folders are removed on undo. There is no activity history.
 
 Library file details and folder breadcrumbs include Keep in place controls. Uploading or organizing files does not publish them to Collab. This is a local browser-storage prototype: organization moves only the selected Library records to the chosen destination, with no AI service, background scheduling, or server-side permission system.
+
+
+### Public demo starting workspace
+
+New browsers open Yufei’s study space with populated student data and completed setup. The starter Library includes the file locations and protected note selected from the deployed Chrome demo, and the weekly recap includes its saved General Chemistry access scope. The NYU community starts in its configured prototype state, with two joined course groups, a pending group invitation, and public discovery. The school email is part of the public demonstration identity, not evidence of real verification.
+
+Each browser receives its own copy on first use. Existing student data and an explicit switch to Umami persist, and Umami remains available in the workspace switcher. Browser edits do not automatically synchronize to other visitors or update the shared starter data.
