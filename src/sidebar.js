@@ -1,4 +1,4 @@
-export const sidebarPages = ['Home','Inbox','Calendar','Goals','Specs','Library','Memory','Agents','Skills','Connectors','Collab'];
+export const sidebarPages = ['Home','Inbox','Calendar','Marketplace','Goals','Specs','Library','Memory','Agents','Skills','Connectors','Collab'];
 export function sidebarPreferences(value={}) {
  const valid=list=>[...new Set(Array.isArray(list)?list.filter(p=>sidebarPages.includes(p)):[])];
  const favorites=valid(value?.favorites);
