@@ -80,7 +80,7 @@ The public prototype is hosted at https://yufeiihuang.github.io/ghanawinit/ from
 
 ### Seeded student workspace
 
-Use the top-left workspace menu to switch between Umami and Maya’s study space. The student workspace includes biology, chemistry, and calculus notes, study goals, a midterm calendar, and study routines. Student-facing labels use Documents, Connections, and Study routines while Umami retains its original labels and content.
+Use the top-left workspace menu to switch between Umami and Yufei’s study space. The student workspace includes biology, chemistry, and calculus notes, study goals, a midterm calendar, and study routines. Student-facing labels use Documents, Connections, and Study routines while Umami retains its original labels and content.
 
 The active choice is stored under `speqq-active-workspace`. Student data uses separate `-student` storage keys for the main workspace, Library, and setup. Seeding only initializes missing records and preserves existing edits in both workspaces. Each visitor gets their own local sample data; this is not a shared multi-user backend.
 
@@ -89,3 +89,7 @@ The active choice is stored under `speqq-active-workspace`. Student data uses se
 Collab replaces the main Team navigation entry with Groups and People. Student workspaces include sample school, course, and study groups; other workspaces include project and research groups. Create groups, join or leave, view people and shared groups, and record invitations locally.
 
 School/course joins ask for a school email as a self-reported affiliation. This prototype does not verify email ownership or enrollment, send invitations, or provide real multi-user collaboration. Group and invitation records are isolated by workspace under `speqq-collab-v1` storage keys. The marketplace for agents, skills, and memories is outside this feature.
+
+### NYU school community
+
+Collab includes a School tab for New York University. The prototype accepts an @nyu.edu address, then uses demo code `123456` to unlock school groups and classmates. The code expires after ten minutes; changing the email restarts the flow. This is a local simulation, not real email delivery or ownership verification. Student sample names migrate from Maya Chen to Yufei Huang without replacing existing goals, notes, or workspace edits.

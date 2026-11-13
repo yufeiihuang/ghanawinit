@@ -1,4 +1,4 @@
-import { renderCollab, bindCollab } from './collab.js';
+import { renderCollab, bindCollab, renderSchoolProfile, changeSchoolEmail } from './collab.js';
 import { activeWorkspace, workspaceKey, ACTIVE_WORKSPACE_KEY } from './workspace-storage.js';
 import { studentWorkspace, studentToday, seedStudentWorkspace } from './student-workspace.js';
 import { navGroups, shortcuts, today, initialData, filterItems, calendarCells, connectorCategories, connectorCategory, roles, defaultRole, suggestedConnectors } from './data.js';
@@ -128,7 +128,7 @@ function genericDetail(r){
 }
 function settings(){
  const t=state.settingsTab;
- if(t==='Profile')return `<div class="page-title"><h1>Profile</h1><span class="spacer"></span>${button('Save','save-profile','primary')}</div><h3>Account</h3><div class="panel profile-card"><span class="avatar large">SR</span><div><h3>${esc(db.profile.first+' '+db.profile.last)}</h3><p class="muted">sam@umami.is</p></div><span class="spacer"></span>${button('Change picture','change-picture','subtle')}</div><section class="panel profile-fields"><label>First name<input aria-label="First name" id="first-name" value="${attr(db.profile.first)}"></label><label>Last name<input aria-label="Last name" id="last-name" value="${attr(db.profile.last)}"></label><label>Email<span>sam@umami.is</span></label><label><span>Username<small>3–20 lowercase letters, numbers, or underscores.</small></span><input aria-label="Username" id="username" value="${attr(db.profile.username)}" minlength="3" maxlength="20" pattern="[a-z0-9_]+"></label><label><span>Role<small>Used to suggest connectors.</small></span><select aria-label="Role" id="role">${Object.keys(roles).map(r=>`<option${r===(db.profile.role||defaultRole)?' selected':''}>${r}</option>`).join('')}</select></label></section>`;
+ if(t==='Profile')return `<div class="page-title"><h1>Profile</h1><span class="spacer"></span>${button('Save','save-profile','primary')}</div><h3>Account</h3><div class="panel profile-card"><span class="avatar large">SR</span><div><h3>${esc(db.profile.first+' '+db.profile.last)}</h3><p class="muted">sam@umami.is</p></div><span class="spacer"></span>${button('Change picture','change-picture','subtle')}</div><section class="panel profile-fields"><label>First name<input aria-label="First name" id="first-name" value="${attr(db.profile.first)}"></label><label>Last name<input aria-label="Last name" id="last-name" value="${attr(db.profile.last)}"></label><label>Email<span>sam@umami.is</span></label><label><span>Username<small>3–20 lowercase letters, numbers, or underscores.</small></span><input aria-label="Username" id="username" value="${attr(db.profile.username)}" minlength="3" maxlength="20" pattern="[a-z0-9_]+"></label><label><span>Role<small>Used to suggest connectors.</small></span><select aria-label="Role" id="role">${Object.keys(roles).map(r=>`<option${r===(db.profile.role||defaultRole)?' selected':''}>${r}</option>`).join('')}</select></label></section>${db.kind==='student'?renderSchoolProfile():''}`;
  if(t==='General')return `<div class="page-title"><h1>General</h1><span class="spacer"></span>${button('Save','save-workspace','primary')}</div><section class="panel profile-fields"><label>Workspace name<input id="workspace-name" aria-label="Workspace name" value="${attr(db.workspace)}"></label><label>Workspace URL<span class="muted">umami.speqq.com</span></label></section>`;
  if(t==='Notifications')return `<h1>Notifications</h1><section class="panel profile-fields">${['Email notifications','Desktop notifications','Spec reviews','Agent approvals','Goal updates'].map((n,i)=>`<label>${n}<input type="checkbox" data-preference="notification-${i}" ${db['notification-'+i]!==false?'checked':''}></label>`).join('')}</section>`;
  if(t==='Billing')return `<h1>Billing</h1><section class="panel"><h3>Workspace plan</h3><p>Pro</p><p class="muted">Manage the plan for ${esc(db.workspace)}.</p>${badge('Active')}</section>`;
@@ -153,7 +153,7 @@ function menus(){
  const m=state.menu;
  let options=[];
  if(m.type==='filter') options=['All',...(state.page==='Inbox'?['Unread','Read','Alert','Review','Mention','Approval']:state.page==='Goals'?['At risk','Off track','Hit']:state.page==='Connectors'?['Connected','Available']:state.page==='Logs'?['Running','Failed','Completed']:state.page==='Team'?['Admin','Member','Invited']:['Draft','In review','Approved'])].map(t=>[t,'choose-filter',`data-filter="${t}"`]);
- else if(m.type==='workspace')options=[['Umami'+(activeWorkspace()==='umami'?'  ✓':''),'switch-workspace','data-workspace="umami"'],['Maya’s study space'+(activeWorkspace()==='student'?'  ✓':''),'switch-workspace','data-workspace="student"'],['Workspace settings','workspace-settings'],['Create workspace','create-workspace']];
+ else if(m.type==='workspace')options=[['Umami'+(activeWorkspace()==='umami'?'  ✓':''),'switch-workspace','data-workspace="umami"'],['Yufei’s study space'+(activeWorkspace()==='student'?'  ✓':''),'switch-workspace','data-workspace="student"'],['Workspace settings','workspace-settings'],['Create workspace','create-workspace']];
  else if(m.type==='account')options=[[db.profile.first+' '+db.profile.last,'close-menu'],['Profile','profile'],['Customize Speqq','customize-speqq'],['Settings','workspace-settings']];
  else if(m.type==='quick')options=[['New spec','quick-spec'],['New goal','quick-goal'],['New memory','quick-memory'],['New agent','quick-agent']];
  else if(m.type==='ask')options=[['Search all sources  ✓','close-menu'],['Include workspace memory  ✓','close-menu']];
@@ -225,6 +225,7 @@ app.addEventListener('click',async e=>{
  case 'close-modal':state.modal=null;render();break;
  case 'workspace-settings':state.page='Settings';state.settingsTab='General';state.menu=null;render();break;
  case 'customize-speqq':state.menu=null;state.modal=null;openCustomization();break;
+ case 'change-school-email':changeSchoolEmail();navigate('Collab');break;
  case 'profile':navigate('Settings');state.settingsTab='Profile';render();break;
  case 'new':create();break;
  case 'create-workspace':state.modal={type:'workspace',title:'Create workspace'};state.menu=null;render();break;

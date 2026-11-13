@@ -9,7 +9,7 @@ test('seeding a student workspace preserves Umami and existing student edits', (
   assert.equal(data.get('speqq-umami-v1'),'original workspace');
   assert.equal(data.get('speqq-library-v1'),'original files');
   assert.equal(data.get('speqq-student-onboarding-v1'),'original setup');
-  assert.equal(JSON.parse(data.get('speqq-umami-v1-student')).profile.first,'Maya');
+  assert.equal(JSON.parse(data.get('speqq-umami-v1-student')).profile.first,'Yufei');
   data.set('speqq-umami-v1-student','student changes'); seedStudentWorkspace(storage);
   assert.equal(data.get('speqq-umami-v1-student'),'student changes');
   assert.equal(workspaceKey('files',storage),'files');
@@ -22,4 +22,13 @@ test('student seed contains independent course content and Library notes', () =>
   assert.ok(b.events.every(event=>!event.title.includes('release')));
   assert.equal(studentFiles().files.length,3);
   assert.ok(studentFiles().files.every(file=>file.content&&file.folder));
+});
+
+test('legacy sample name migrates to Yufei while keeping files and edits',()=>{
+ const original=studentWorkspace();original.profile={first:'Maya',last:'Chen',username:'maya'};original.workspace='Maya’s study space';original.goals[0].title='My custom goal';
+ const values=new Map([['speqq-umami-v1-student',JSON.stringify(original)],['speqq-library-v1-student','my library']]);
+ const storage={getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value)};
+ seedStudentWorkspace(storage);const saved=JSON.parse(values.get('speqq-umami-v1-student'));
+ assert.equal(saved.profile.first,'Yufei');assert.equal(saved.profile.last,'Huang');assert.equal(saved.workspace,'Yufei’s study space');
+ assert.equal(saved.goals[0].title,'My custom goal');assert.equal(values.get('speqq-library-v1-student'),'my library');
 });
