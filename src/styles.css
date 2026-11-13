@@ -111,3 +111,5 @@ h1>.help-button,h3>.help-button,.help-label>.help-button,.lib-keep-row>.help-but
 .lib-file-name .brand>svg{margin:0;width:18px;height:18px}
 .lib-file-name>span:last-child>svg{width:12px;height:12px;margin-left:6px;vertical-align:-1px}
 .sidebar-order .icon-button{display:inline-flex;align-items:center;justify-content:center;line-height:1}
+
+#toast.visible{pointer-events:auto}
