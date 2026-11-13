@@ -2,7 +2,7 @@ import { sidebarPages, sidebarPreferences, sidebarSections } from './sidebar.js'
 import { renderCollab, bindCollab, renderSchoolProfile, changeSchoolEmail } from './collab.js';
 import { activeWorkspace, workspaceKey, ACTIVE_WORKSPACE_KEY } from './workspace-storage.js';
 import { studentWorkspace, studentToday, seedStudentWorkspace } from './student-workspace.js';
-import { navGroups, shortcuts, today, initialData, filterItems, calendarCells, connectorCategories, connectorCategory, roles, defaultRole, suggestedConnectors } from './data.js';
+import { navGroups, shortcuts, today, initialData, filterItems, calendarCells, connectorCategories, connectorCategory, roles, defaultRole, suggestedConnectors, marketplace } from './data.js';
 import { renderLibrary, bindLibrary } from './library.js';
 import { icon, brand } from './icons.js';
 import { renderStudentRoute, openCustomization, reloadOnboarding } from './onboarding.js';
@@ -61,6 +61,20 @@ function toolbar(){
 }
 function home(){
  return `<div class="home"><a class="student-entry" href="${db.kind==='student'?'#Onboarding/customize':'#Onboarding'}">${icon('Memory',15)} ${db.kind==='student'?'Customize your study space':'Set up Speqq for studying'} ${icon('right',13)}</a><div class="greeting"><div class="eyebrow"><span class="workspace-logo">◒</span> ${esc(db.workspace)} <span>·</span> ${db.kind==='student'?'Thursday, Nov 12':'Wednesday, Nov 11'}</div><h1>Good evening, ${esc(db.profile.first)}</h1><p>${db.kind==='student'?'Your Cell Biology midterm is next Thursday<br class="desktop-break"> Review your notes and make time for chemistry practice':'Sprint planning at 4. v4.13 ships tomorrow with one<br class="desktop-break"> review left, and the Milestone 2 demo is due Friday.'}</p></div><div class="today-head"><strong>Today <span class="muted">${homeCards().length}</span></strong><span class="spacer"></span>${button(icon('Calendar',14)+' Calendar','open-calendar','calendar-link')}${ib('left','carousel-prev','Previous cards')}${ib('right','carousel-next','Next cards')}</div><div class="today-cards">${homeCards().slice(state.carousel,state.carousel+3).map((r,i)=>`<article class="today-card" tabindex="0" data-action="today" data-index="${state.carousel+i}"><div class="card-source">${brand(r[0])}<span>${r[1]}</span>${button(icon('check',12),'dismiss-today','card-check',`data-index="${state.carousel+i}" aria-label="Dismiss ${attr(r[2])}"`)}</div><h3>${esc(r[2])}</h3><footer><span class="status-dot ${r[5]}">${esc(r[3])}</span><span>${esc(r[4])}</span></footer></article>`).join('')}</div></div>`;
+}
+function market(){
+ const added=new Set(db.marketAdded||[]);
+ const tints=['#7774e7','#668bff','#d05c62','#4fae7a','#d9ae48','#c38e79'];
+ const blurb={Memory:'Shared knowledge bases you can reference.',Skills:'Reusable abilities for your agents and chats.',Templates:'Prebuilt docs to start faster.',Agents:'Automations that run on a schedule or trigger.'};
+ const q=state.query.trim();
+ const card=(r,ci,i)=>{const on=added.has(r.id);return `<article class="market-card"><div class="market-thumb" style="--tint:${tints[(ci+i)%tints.length]}">${icon(r.category==='Templates'?'Specs':r.category,22)}</div><div class="market-body"><div class="row-copy"><span class="market-title">${esc(r.title)}</span><small>${esc(r.description)}</small></div><footer><span class="market-meta">${esc(r.author)} <span class="market-dot">·</span> ${esc(r.uses)}</span><button class="market-get ${on?'added':''}" data-action="market-add" data-id="${r.id}" aria-pressed="${on}">${on?icon('check',13)+' Added':'Get'}</button></footer></div></article>`;};
+ const shelves=marketplace.map((shelf,ci)=>{
+  const items=filterItems(shelf.items,q);
+  if(!items.length)return '';
+  const sid='shelf-'+shelf.category.toLowerCase();
+  return `<section class="market-shelf"><div class="shelf-head"><div><h3>${esc(shelf.category)}</h3><p class="muted">${esc(blurb[shelf.category]||'')}</p></div><span class="spacer"></span>${ib('left','shelf-prev','Scroll '+shelf.category+' left')}${ib('right','shelf-next','Scroll '+shelf.category+' right')}</div><div class="shelf-track" id="${sid}" data-shelf>${items.map((r,i)=>card(r,ci,i)).join('')}</div></section>`;
+ }).join('');
+ return `<div class="page marketplace"><div class="market-hero"><h1>Marketplace</h1><p>Browse public memory, skills, templates, and agents, and add them to ${esc(db.workspace)}.</p><label class="search market-search">${icon('search',15)}<input id="list-search" aria-label="Search the marketplace" placeholder="Search the marketplace" value="${attr(state.query)}" autocomplete="off"></label></div>${shelves||empty('Nothing matches your search','Try a different search.')}</div>`;
 }
 function rows(){
  let list=filterItems(db[dataKey()]||[],state.query);
@@ -139,6 +153,7 @@ function content(){
  if(state.page==='Collab')return renderCollab(db);
  if(state.page==='Library')return renderLibrary();
  if(state.page==='Home')return home();
+ if(state.page==='Marketplace')return market();
  if(state.page==='Settings')return `<div class="page settings-page">${settings()}</div>`;
  const r=current();
  if(r&&state.page==='Specs')return specDetail(r);
@@ -173,7 +188,7 @@ function modal(){
  return `<div class="modal-backdrop" data-action="close-modal"></div><section class="dialog sidebar-dialog" role="dialog" aria-modal="true" aria-labelledby="sidebar-dialog-title"><div class="dialog-heading"><h2 id="sidebar-dialog-title">Customize sidebar</h2>${ib('close','close-modal','Close sidebar customization')}</div><p class="muted">Star pages to keep them at the top of this workspace</p><div class="sidebar-customize-head"><span>Page</span><span>Favourite</span><span>Show</span></div><div class="sidebar-options">${pages.map(name=>{const pinned=prefs.favorites.includes(name),index=prefs.favorites.indexOf(name);return `<div class="sidebar-option"><span class="sidebar-option-name">${icon(name,16)}${esc(pageLabel(name))}</span><span class="sidebar-order">${pinned?`${button('↑','sidebar-move','icon-button',`data-page="${name}" data-direction="-1" aria-label="Move ${pageLabel(name)} up" ${index===0?'disabled':''}`)}${button('↓','sidebar-move','icon-button',`data-page="${name}" data-direction="1" aria-label="Move ${pageLabel(name)} down" ${index===prefs.favorites.length-1?'disabled':''}`)}`:''}</span>${button(icon('star',16),'sidebar-pin','icon-button '+(pinned?'favorited':''),`data-page="${name}" aria-label="Favourite ${pageLabel(name)}" aria-pressed="${pinned}"`)}<input type="checkbox" data-sidebar-show="${name}" aria-label="Show ${pageLabel(name)} in sidebar" ${!prefs.hidden.includes(name)?'checked':''} ${name==='Home'||pinned?'disabled':''}></div>`}).join('')}</div><div class="dialog-footer">${button('Reset sidebar','sidebar-reset','subtle')}<span class="spacer"></span>${button('Done','close-modal','primary')}</div></section>`;
  }
  if(m.type==='commands'){
- const commands=[['Ask Speqq','open-chat'],['Navigation: Go home','command-home'],['Sidebar: Toggle sidebar','sidebar'],['Inbox: Open inbox','command-Inbox'],['Inbox: Mark all as read','read-all'],...['Goals','Specs','Memory','Agents','Skills','Connectors','Collab','Logs','Trash','Settings'].filter(n=>!['Logs','Trash'].includes(n)).map(n=>[pageLabel(n)+': Open '+pageLabel(n).toLowerCase(),'command-'+n]),['Specs: New spec','quick-spec'],['Goals: New goal','quick-goal'],['Routines: New routine','quick-agent']];
+ const commands=[['Ask Speqq','open-chat'],['Navigation: Go home','command-home'],['Sidebar: Toggle sidebar','sidebar'],['Inbox: Open inbox','command-Inbox'],['Inbox: Mark all as read','read-all'],...['Marketplace','Goals','Specs','Memory','Agents','Skills','Connectors','Collab','Logs','Trash','Settings'].filter(n=>!['Logs','Trash'].includes(n)).map(n=>[pageLabel(n)+': Open '+pageLabel(n).toLowerCase(),'command-'+n]),['Specs: New spec','quick-spec'],['Goals: New goal','quick-goal'],['Routines: New routine','quick-agent']];
  return `<div class="modal-backdrop" data-action="close-modal"></div><section class="command-dialog" role="dialog" aria-modal="true" aria-label="Commands"><div class="command-search"><input id="command-search" aria-label="Select a command" placeholder="Select a command…" autofocus>${ib('close','close-modal','Close commands')}</div><div class="command-results"><small>Recent</small>${button(icon('Specs')+'Navigation — get back to where you were'+badge('Spec'),'recent-spec','command-option')}<small>Commands</small>${commands.map(([t,a])=>button(esc(t),a,'command-option',`data-command="${attr(t.toLowerCase())}"`)).join('')}</div><footer>↑↓ to navigate　 ↵ to use　 esc to dismiss</footer></section>`;
  }
  if(m.type==='share')return `<div class="modal-backdrop" data-action="close-modal"></div><section class="dialog" role="dialog" aria-modal="true" aria-label="Share spec"><div class="dialog-heading"><h2>Share ${esc(current()?.title||'spec')}</h2>${ib('close','close-modal','Close share')}</div><label>Invite people<input placeholder="Email address" type="email" id="share-email"></label><div class="share-person">${avatars('SR')}Sam Rivera<span class="spacer"></span>${badge('Owner')}</div><div class="dialog-footer">${button(icon('copy',14)+' Copy link','copy-link','subtle')}${button('Done','close-modal','primary')}</div></section>`;
@@ -243,6 +258,8 @@ app.addEventListener('click',async e=>{
  case 'dismiss-today':el.closest('.today-card').classList.add('dismissed');toast('Marked as done');break;
  case 'carousel-prev':state.carousel=Math.max(0,state.carousel-3);render();break;
  case 'carousel-next':state.carousel=state.carousel+3>=homeCards().length?0:state.carousel+3;render();break;
+ case 'shelf-prev':case 'shelf-next':{const track=el.closest('.market-shelf').querySelector('[data-shelf]');track.scrollBy({left:(a==='shelf-next'?1:-1)*Math.max(track.clientWidth*0.8,260),behavior:'smooth'});break;}
+ case 'market-add':{db.marketAdded||=[];const was=db.marketAdded.includes(id);db.marketAdded=was?db.marketAdded.filter(x=>x!==id):[...db.marketAdded,id];save();el.classList.toggle('added',!was);el.setAttribute('aria-pressed',String(!was));el.innerHTML=was?'Get':icon('check',13)+' Added';toast(was?'Removed from workspace':'Added to workspace');break;}
  case 'open-calendar':navigate('Calendar');break;
  case 'month-prev':case 'month-next':state.month+=a==='month-prev'?-1:1;if(state.month<0){state.month=11;state.year--;}if(state.month>11){state.month=0;state.year++;}render();break;
  case 'toggle-skill':db.skills.find(s=>s.id===id).on=!db.skills.find(s=>s.id===id).on;save();render();break;

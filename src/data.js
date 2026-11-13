@@ -1,5 +1,5 @@
 export const navGroups = [
-  ['', ['Home', 'Inbox', 'Calendar']], ['Work', ['Goals', 'Specs', 'Library', 'Memory']],
+  ['', ['Home', 'Inbox', 'Calendar']], ['Discover', ['Marketplace']], ['Work', ['Goals', 'Specs', 'Library', 'Memory']],
   ['Automation', ['Agents', 'Skills']], ['Workspace', ['Connectors', 'Collab']],
   ['System', ['Settings', 'Commands']]
 ];
@@ -78,6 +78,45 @@ export function suggestedConnectors(connectors, role, limit=4) {
   const picks=(roles[role]||roles[defaultRole]).picks;
   return picks.map(t=>connectors.find(c=>c.title===t&&!c.connected)).filter(Boolean).slice(0,limit);
 }
-export function initialData() { return structuredClone({inbox,specs,goals,memories,agents,skills,connectors,team,logs,events,trash:[],profile:{first:'Sam',last:'Rivera',username:'sam',role:defaultRole},workspace:'Umami'}); }
+// Marketplace: public items anyone can browse and add to their workspace.
+const marketItems = {
+  Memory: [
+    ['Gen Chem 1','Reactions, stoichiometry, and equilibrium for first-year chemistry.','UC Berkeley','3.1k'],
+    ['Design Thinking','Empathize, define, ideate, prototype, and test \u2014 with examples.','IDEO U','2.4k'],
+    ['U.S. History 101','Key eras, figures, and turning points from 1776 to today.','Khan Academy','1.8k'],
+    ['Startup Metrics','CAC, LTV, burn, and the numbers investors ask about.','Y Combinator','4.6k'],
+    ['Spanish B1','Grammar, common verbs, and conversation phrases.','Duolingo','5.2k'],
+    ['Human Anatomy','Systems, structures, and terminology for pre-med.','Osmosis','1.2k']
+  ],
+  Skills: [
+    ['Cite in APA','Format references and in-text citations in APA 7.','Speqq','980'],
+    ['Summarize PDF','Turn a long paper into a one-page brief.','Speqq','6.7k'],
+    ['Flashcard maker','Generate spaced-repetition cards from any note.','Quizlet','3.3k'],
+    ['Code reviewer','Flag bugs and suggest fixes on a diff.','Speqq','8.1k'],
+    ['Meeting notes','Clean a transcript into decisions and action items.','Granola','2.9k'],
+    ['Translate','Translate text between 30+ languages.','DeepL','4.0k']
+  ],
+  Templates: [
+    ['Weekly Planner','Plan your week with priorities and time blocks.','Notion','12k'],
+    ['Lab Report','Hypothesis, method, results, and discussion.','Overleaf','1.1k'],
+    ['Product Spec','Problem, solution, requirements, and rollout plan.','Speqq','3.5k'],
+    ['Course Syllabus','Schedule, readings, grading, and policies.','Google Classroom','900'],
+    ['Reading List','Track books with notes, ratings, and status.','Notion','2.2k'],
+    ['Sprint Board','Backlog, in progress, review, and done.','Linear','5.8k']
+  ],
+  Agents: [
+    ['Study Buddy','Quizzes you on your notes before an exam.','Speqq','2.1k'],
+    ['Release Notes','Drafts a changelog from merged pull requests.','GitHub','1.7k'],
+    ['Inbox Triage','Sorts and labels new messages each morning.','Speqq','3.9k'],
+    ['Citation Finder','Finds sources to back up a claim.','Zotero','760'],
+    ['Standup Bot','Collects updates and posts a daily summary.','Slack','4.4k'],
+    ['Deadline Watcher','Reminds you before assignments are due.','Brightspace','1.3k']
+  ]
+};
+export const marketplace = Object.entries(marketItems).map(([category,items])=>({
+  category,
+  items: items.map((r,i)=>({id:'market-'+category.toLowerCase()+'-'+i,title:r[0],description:r[1],author:r[2],uses:r[3],category}))
+}));
+export function initialData() { return structuredClone({inbox,specs,goals,memories,agents,skills,connectors,team,logs,events,trash:[],marketAdded:[],profile:{first:'Sam',last:'Rivera',username:'sam',role:defaultRole},workspace:'Umami'}); }
 export function filterItems(items,query='') { const q=query.trim().toLowerCase(); return items.filter(item=>[item.title,item.description,item.author,item.team,item.type].filter(Boolean).join(' ').toLowerCase().includes(q)); }
 export function calendarCells(year,month) { const start=new Date(year,month,1).getDay();const count=new Date(year,month+1,0).getDate();return Array.from({length:Math.ceil((start+count)/7)*7},(_,i)=>({day:new Date(year,month,i-start+1).getDate(),current:i>=start&&i<start+count,index:i-start+1})); }
