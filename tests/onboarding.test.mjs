@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { newDraft, readDraft, canContinue, addCourse, toggleSource, ONBOARDING_KEY } from '../src/onboarding-state.js';
+import { newDraft, readDraft, canContinue, addCourse, toggleSource, needsOnboarding, ONBOARDING_KEY } from '../src/onboarding-state.js';
 
 test('setup requires study context and one goal, but never requires migration', () => {
   const draft = newDraft();
@@ -52,4 +52,16 @@ test('courses are trimmed and deduplicated without losing semester context', () 
     assert.equal(readDraft({ getItem: () => JSON.stringify(draft) }).role, role);
   }
   assert.equal(canContinue({ ...newDraft(), name: 'Alex', major: 'Biology', role: 'unknown' }), false);
+});
+
+test('first visits and deep links require setup until finished or explicitly skipped', () => {
+  const draft = newDraft();
+  for (const hash of ['', '#Home', '#Specs/spec-1', '#Study']) assert.equal(needsOnboarding(draft, hash), true);
+  assert.equal(needsOnboarding(draft, '#Onboarding'), false);
+  assert.equal(needsOnboarding({ ...draft, step: 3 }, '#Home'), true);
+  for (const state of [{ ...draft, skipped: true }, { ...draft, completed: true }]) {
+    assert.equal(needsOnboarding(state, '#Home'), false);
+    assert.equal(needsOnboarding(state, '#Specs/spec-1'), false);
+    assert.equal(needsOnboarding(state, '#Onboarding'), false);
+  }
 });

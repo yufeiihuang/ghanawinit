@@ -2,7 +2,7 @@ export const ONBOARDING_KEY = 'speqq-student-onboarding-v1';
 export const STEPS = ['About you', 'Your goal', 'Your courses', 'Try it', 'Your space'];
 
 export function newDraft() {
-  return { step: 0, name: '', role: '', major: '', year: '', goal: '', exam: '', targetDate: '', courses: [], sources: [], materials: [], transcripts: [], connections: [], completed: false, connectionSaved: false, routine: false };
+  return { step: 0, name: '', role: '', major: '', year: '', goal: '', exam: '', targetDate: '', courses: [], sources: [], materials: [], transcripts: [], connections: [], completed: false, skipped: false, connectionSaved: false, routine: false };
 }
 
 export function readDraft(storage) {
@@ -32,4 +32,10 @@ export function addCourse(draft, value) {
 export function toggleSource(draft, source) {
   draft.sources = draft.sources.includes(source) ? draft.sources.filter(s => s !== source) : [...draft.sources, source];
   return draft;
+}
+
+// Explicit setup links stay available after finishing or skipping.
+export function needsOnboarding(draft, hash) {
+  const route = hash.replace(/^#/, '').split('/')[0];
+  return route !== 'Onboarding' && draft.completed !== true && draft.skipped !== true;
 }

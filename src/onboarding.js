@@ -55,7 +55,7 @@ function review() {
 
 function setup() {
   const panels = [profile, goal, material, firstConnection, review];
-  return `<div class="ob-shell"><aside class="ob-sidebar"><div class="ob-logo"><span class="workspace-logo">◒</span>speqq</div><ol class="ob-steps" aria-label="Setup progress">${STEPS.map((title, i) => `<li class="${i === draft.step ? 'current' : i < draft.step ? 'done' : ''}"><button type="button" class="nav-item ${i === draft.step ? 'active' : ''}" data-ob="step" data-step="${i}" ${i === draft.step ? 'aria-current="step"' : ''}>${title}</button></li>`).join('')}</ol><div class="ob-sidebar-bottom">Set up Speqq</div></aside><main class="ob-main"><header class="topbar"><span>Set up Speqq <span class="ob-breadcrumb">/</span> ${STEPS[draft.step]}</span>${b('Save and exit', 'exit', 'ob-outline')}</header><form id="ob-form" class="page ob-panel"><div class="ob-mobile-progress">Step ${draft.step + 1} of ${STEPS.length} — ${STEPS[draft.step]}</div><section id="ob-content" tabindex="-1">${panels[draft.step]()}</section><div class="ob-notice" role="status">${escape(notice)}</div><footer class="ob-footer">${draft.step > 0 ? b('Back', 'back', 'ob-outline') : '<span></span>'}<div class="ob-footer-actions">${draft.step === 2 ? b('Skip for now', 'skip', 'ob-outline') : ''}<button class="primary ob-next" type="submit" ${canContinue(draft) ? '' : 'disabled'}>${draft.step === STEPS.length - 1 ? 'Open my study space' : 'Continue'}</button></div></footer></form></main></div>`;
+  return `<div class="ob-shell"><aside class="ob-sidebar"><div class="ob-logo"><span class="workspace-logo">◒</span>speqq</div><ol class="ob-steps" aria-label="Setup progress">${STEPS.map((title, i) => `<li class="${i === draft.step ? 'current' : i < draft.step ? 'done' : ''}"><button type="button" class="nav-item ${i === draft.step ? 'active' : ''}" data-ob="step" data-step="${i}" ${i === draft.step ? 'aria-current="step"' : ''}>${title}</button></li>`).join('')}</ol><div class="ob-sidebar-bottom">Set up Speqq</div></aside><main class="ob-main"><header class="topbar"><span>Set up Speqq <span class="ob-breadcrumb">/</span> ${STEPS[draft.step]}</span>${b('Skip setup', 'exit', 'ob-outline')}</header><form id="ob-form" class="page ob-panel"><div class="ob-mobile-progress">Step ${draft.step + 1} of ${STEPS.length} — ${STEPS[draft.step]}</div><section id="ob-content" tabindex="-1">${panels[draft.step]()}</section><div class="ob-notice" role="status">${escape(notice)}</div><footer class="ob-footer">${draft.step > 0 ? b('Back', 'back', 'ob-outline') : '<span></span>'}<div class="ob-footer-actions">${draft.step === 2 ? b('Skip for now', 'skip', 'ob-outline') : ''}<button class="primary ob-next" type="submit" ${canContinue(draft) ? '' : 'disabled'}>${draft.step === STEPS.length - 1 ? 'Open Speqq' : 'Continue'}</button></div></footer></form></main></div>`;
 }
 
 function study() {
@@ -101,7 +101,7 @@ export function renderStudentRoute(root) {
     e.preventDefault();
     if (!canContinue(draft)) return;
     notice = '';
-    if (draft.step === STEPS.length - 1) { draft.completed = true; persist(); location.hash = 'Study'; return; }
+    if (draft.step === STEPS.length - 1) { draft.completed = true; draft.skipped = false; persist(); location.hash = 'Home'; return; }
     draft.step++; persist(); draw(true);
   }, { signal });
   root.addEventListener('click', e => {
@@ -110,7 +110,7 @@ export function renderStudentRoute(root) {
     const action = el.dataset.ob;
     if (action === 'goal') { draft.goal = el.dataset.value; if (draft.goal !== 'Prepare for a big exam') { draft.exam = ''; draft.targetDate = ''; } }
     else if (action === 'revisit') { draft.step = Number(el.dataset.step); persist(); return; }
-    else if (action === 'exit') { persist(); location.hash = 'Home'; return; }
+    else if (action === 'exit') { draft.skipped = true; persist(); location.hash = 'Home'; return; }
     else if (action === 'connect') { importSource = el.dataset.value; selectedCourses = [...sampleCourses]; notice = ''; }
     else if (action === 'cancel-import') { importSource = ''; selectedCourses = []; }
     else if (action === 'confirm-import') {

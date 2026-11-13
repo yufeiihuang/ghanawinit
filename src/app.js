@@ -1,6 +1,7 @@
 import { navGroups, shortcuts, today, initialData, filterItems, calendarCells } from './data.js';
 import { icon, brand } from './icons.js';
 import { renderStudentRoute } from './onboarding.js';
+import { readDraft, needsOnboarding } from './onboarding-state.js';
 
 const STORAGE='speqq-umami-v1';
 let db;
@@ -150,6 +151,7 @@ function modal(){
  return `<div class="modal-backdrop" data-action="close-modal"></div><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="dialog-heading"><h2 id="dialog-title">${esc(title)}</h2>${ib('close','close-modal','Close dialog')}</div><form id="edit-form"><label>${type==='invite'?'Email address':type==='add-tag'?'Tag name':type==='add-tab'?'Tab name':'Name'}<input name="title" aria-label="${type==='invite'?'Email address':'Name'}" placeholder="${type==='invite'?'name@company.com':title}" value="${attr(m.value||'')}" ${type==='invite'?'type="email"':''} required autofocus></label>${['create','event','invite'].includes(type)?`<label>${type==='invite'?'Role':'Description'}${type==='invite'?'<select name="role"><option>Member</option><option>Admin</option></select>':'<textarea name="description" rows="3" placeholder="Add a description…"></textarea>'}</label>`:''}${type==='event'?`<div class="form-columns"><label>Date<input type="date" name="date" value="2026-11-11" required></label><label>Type<select name="eventType">${['Meeting','Release','Milestone','Spec','Goal','Launch'].map(t=>`<option>${t}</option>`).join('')}</select></label></div>`:''}<div class="dialog-footer">${button('Cancel','close-modal','subtle')}<button class="primary" type="submit">${['rename','add-tag','add-tab'].includes(type)?'Save':type==='invite'?'Invite':'Create'}</button></div></form></section>`;
 }
 function render(){
+ if(needsOnboarding(readDraft(localStorage), location.hash)) window.history.replaceState(null,'','#Onboarding');
  if(renderStudentRoute(app))return;
  app.innerHTML=`${sidebar()}<main class="main ${state.sidebar?'':'full'}">${header()}<div class="main-scroll">${content()}</div>${composer()}</main>${menus()}${modal()}<div id="toast" role="status"></div>`;
  if(state.modal)setTimeout(()=>document.querySelector('#command-search,.dialog input')?.focus(),0);
