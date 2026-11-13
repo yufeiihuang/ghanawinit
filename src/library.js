@@ -1,7 +1,7 @@
 import { icon } from './icons.js';
 import { readDraft } from './onboarding-state.js';
 const appLogos = {'Google Drive':'google-drive.svg',Notability:'notability.ico',Notion:'notion.svg',Goodnotes:'goodnotes.png',Obsidian:'obsidian.svg'};
-const appLogo = app => `<img class="lib-app-logo" src="/src/assets/logos/${appLogos[app]}" alt="" aria-hidden="true">`;
+const appLogo = app => `<img class="lib-app-logo" src="./src/assets/logos/${appLogos[app]}" alt="" aria-hidden="true">`;
 const KEY = 'speqq-library-v1';
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let db;
@@ -33,7 +33,7 @@ function overlay() {
     body = `<p class="muted">Choose notes to add to your Library</p><div class="lib-import-list">${importNames(importApp).map((name, i) => `<label><input type="checkbox" data-lib-import="${i}" ${chosen.includes(i) ? 'checked' : ''}>${esc(name)}</label>`).join('')}</div><div class="dialog-footer">${btn('Cancel','close','subtle')}${btn('Import selected','import-confirm','primary', chosen.length ? '' : 'disabled')}</div>`;
   } else if (panel === 'scan') {
     title = 'Scan to add handwritten notes';
-    body = `<div class="lib-qr"><img src="/src/assets/notes-upload-qr.svg" width="180" height="180" alt="QR code for phone upload demo"><div><p>Scan with your phone’s camera</p><p class="muted">Take a photo of your notes or choose one from your library</p></div></div><div class="dialog-footer">${btn('Preview phone upload','phone','primary')}</div>`;
+    body = `<div class="lib-qr"><img src="./src/assets/notes-upload-qr.svg" width="180" height="180" alt="QR code for phone upload demo"><div><p>Scan with your phone’s camera</p><p class="muted">Take a photo of your notes or choose one from your library</p></div></div><div class="dialog-footer">${btn('Preview phone upload','phone','primary')}</div>`;
   } else if (panel === 'phone') {
     title = 'Add handwritten notes';
     body = `<div class="lib-phone">${icon('Specs',32)}<p>Capture a page of your notes</p>${btn('Take photo','camera','primary')}${btn('Use sample photo','sample','subtle')}</div>`;
