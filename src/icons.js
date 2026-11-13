@@ -9,7 +9,7 @@ const paths = {
 };
 export function icon(name,size=16){return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${(paths[name]||paths.Specs).split('|').map(d=>`<path d="${d}"/>`).join('')}</svg>`;}
 export function brand(name){
- const colors={'GitHub':'#efefef','Linear':'#7774e7','Canvas':'#d05c62','Google Calendar':'#668bff','Discord':'#7772ff','Anthropic':'#c38e79','PostHog':'#d9ae48','Stripe':'#7564fc','Datadog':'#9161bc','Obsidian':'#9871d6','Zotero':'#d05a65','Todoist':'#e96a63'};
- const symbols={'GitHub':'◕','Linear':'◒','Canvas':'◌','Google Calendar':'▣','Discord':'♟','Anthropic':'AI','PostHog':'▰','Stripe':'S','Datadog':'♧','Notion':'▧','Specs':'▥','Google Drive':'◭','Figma':'●','Slack':'✣','Obsidian':'◈','Zotero':'Z','Todoist':'✓','Claude':'✳','Claude Code':'✳','Codex':'⬡','Cursor':'⬖','Gmail':'M','Jira':'◆'};
+ const colors={'GitHub':'#efefef','Linear':'#7774e7','Canvas':'#d05c62','Google Calendar':'#668bff','Discord':'#7772ff','Anthropic':'#c38e79','PostHog':'#d9ae48','Stripe':'#7564fc','Datadog':'#9161bc','Obsidian':'#9871d6','Zotero':'#d05a65','Todoist':'#e96a63','Quizlet':'#4255ff','Notability':'#5b8def','GoodNotes 6':'#3fa6f5','Brightspace':'#f58025','Google Classroom':'#1e8e3e'};
+ const symbols={'GitHub':'◕','Linear':'◒','Canvas':'◌','Google Calendar':'▣','Discord':'♟','Anthropic':'AI','PostHog':'▰','Stripe':'S','Datadog':'♧','Notion':'▧','Specs':'▥','Google Drive':'◭','Figma':'●','Slack':'✣','Obsidian':'◈','Zotero':'Z','Todoist':'✓','Claude':'✳','Claude Code':'✳','Codex':'⬡','Cursor':'⬖','Gmail':'M','Jira':'◆','Quizlet':'Q','Notability':'✎','GoodNotes 6':'G','Brightspace':'B','Google Classroom':'▤'};
  return `<span class="brand" style="--brand:${colors[name]||'#aeaeae'}" title="${name}">${symbols[name]||name.slice(0,1)}</span>`;
 }

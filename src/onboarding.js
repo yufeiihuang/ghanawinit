@@ -107,7 +107,7 @@ export function renderStudentRoute(root) {
   controller?.abort();
   controller = new AbortController();
   const { signal } = controller;
-  const draw = (focus = false) => { root.innerHTML = route === 'Study' ? study() : setup(); document.title = route === 'Study' ? 'Your study space · Speqq' : `${customizing ? 'Customize Speqq' : 'Set up Speqq'} · ${draft.step === 2 && draft.role !== 'Student' ? 'Your files' : STEPS[draft.step]} · Speqq`; if (focus) root.querySelector('#ob-content')?.focus(); };
+  const draw = (focus = false) => { root.innerHTML = route === 'Study' ? study() : setup(); document.title = route === 'Study' ? 'Your study space · Speqq' : `${customizing ? 'Customize Speqq' : 'Set up Speqq'} · ${draft.step === 2 && draft.role !== 'Student' ? 'Your files' : STEPS[draft.step]} · Speqq`; if (focus) { root.querySelector('#ob-content')?.focus({ preventScroll: true }); window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); } };
   draw();
   root.addEventListener('input', e => {
     const key = e.target.name;
