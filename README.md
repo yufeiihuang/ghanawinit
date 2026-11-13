@@ -21,6 +21,18 @@ The build produces a static `dist/` directory that can be served by any static h
 
 ## Included
 
+### Student onboarding scaffold
+
+New visitors enter onboarding before reaching the main app, including when opening a workspace deep link. **Skip setup** is available at every step and opens Home immediately. Completing setup also opens Home. Either choice is remembered on this device, and setup can be revisited from Home. The bottom-left profile menu includes **Customize Speqq**, which opens saved settings with direct section navigation and **Save and return**, without repeating the demo step.
+
+The five-step flow first asks whether the user is a Student, Educator, Researcher, or Other, then collects study context, a starting goal, courses, and optional source preferences or files; demonstrates a connection between two sample courses; and opens a personalized study space at `#Study`. Draft progress resumes on this device, independently of the original workspace. Markdown/text contents are stored locally; PDFs and photos are listed only. The example connection is explicitly sample-based. Direct source connections, OCR, phone scanning, AI analysis, and scheduled review notifications remain future work.
+
+Onboarding reuses the workspace page, navigation, connector-card, primary-button, typography, and native select styles instead of maintaining separate visual overrides. The course-import screen matches the original workspace's neutral black and gray styling. Canvas, Brightspace, and mySchoolApp open a simulated course picker; transcript selection opens the same sample review flow. Students can select courses, add them manually, remove them, or skip this step. Connections and transcript extraction are demo simulations with fixed sample courses, not real API calls or document parsing. Only transcript filenames and sizes are retained locally. No credentials or file contents are sent to a service.
+
+This draft focuses on STEM/pre-med students and a first experience connecting concepts across semesters. It uses **routine** rather than **agent** in the student space. The original workspace remains available at `#Home`.
+
+### Original workspace
+
 - Dark sidebar, dotted canvas, home summary and rotating Today cards.
 - Inbox with search, filters, read state and details.
 - Goals with expandable context and suggested questions.
@@ -51,3 +63,29 @@ Edits persist in the current browser under `speqq-umami-v1`. Clear that local st
 - `tests/data.test.mjs`: data isolation, search and calendar edge cases.
 
 Keyboard shortcuts: `G` then `H/I/O/S/M/A/K/C/T/L` opens the corresponding sidebar section. `⌘/Ctrl K` opens commands, `⌘/Ctrl J` opens Ask Speqq, `⌘/Ctrl B` toggles the sidebar, and `⌘/Ctrl N` creates a spec. `Escape` dismisses dialogs and panels.
+
+### Handwritten note scan demo
+
+Under Upload notes, Scan with your phone opens a QR panel. Preview phone upload shows a camera/file picker and a sample-photo action. The bundled QR encodes the published `https://yufeiihuang.github.io/ghanawinit/#Onboarding/phone` demo route; it is not a remote upload session. Cross-device transfer and handwriting recognition are simulated for the case-competition prototype. Actual file selections use the existing local note-file handling.
+
+### Library
+
+Library lives under Work and provides a Drive-style file list, grid view, search, course folders, custom folders, previews, and folder assignment. Notes and transcripts selected during setup are included automatically. The + New menu supports files, pictures, phone scans, and simulated imports from Notability, Notion, Goodnotes, and Obsidian. Imports use fixed sample Markdown notes; no external accounts are accessed.
+
+Library metadata and text contents are stored under `speqq-library-v1`. Selected images can be previewed during the current page session; binary file contents are not retained across reloads. The QR and sample-photo flows are demo interactions, not cross-device transfer or OCR.
+
+### GitHub Pages
+
+The public prototype is hosted at https://yufeiihuang.github.io/ghanawinit/ from the generated `gh-pages` branch. Source changes remain in their review branches. Build with `npm run build`; publish the contents of `dist/` with a `.nojekyll` file to the deployment branch. Asset paths are relative so the app works under the repository subpath. Browser-local prototype data is separate on each device.
+
+### Seeded student workspace
+
+Use the top-left workspace menu to switch between Umami and Maya’s study space. The student workspace includes biology, chemistry, and calculus notes, study goals, a midterm calendar, and study routines. Student-facing labels use Documents, Connections, and Study routines while Umami retains its original labels and content.
+
+The active choice is stored under `speqq-active-workspace`. Student data uses separate `-student` storage keys for the main workspace, Library, and setup. Seeding only initializes missing records and preserves existing edits in both workspaces. Each visitor gets their own local sample data; this is not a shared multi-user backend.
+
+### Collab
+
+Collab replaces the main Team navigation entry with Groups and People. Student workspaces include sample school, course, and study groups; other workspaces include project and research groups. Create groups, join or leave, view people and shared groups, and record invitations locally.
+
+School/course joins ask for a school email as a self-reported affiliation. This prototype does not verify email ownership or enrollment, send invitations, or provide real multi-user collaboration. Group and invitation records are isolated by workspace under `speqq-collab-v1` storage keys. The marketplace for agents, skills, and memories is outside this feature.

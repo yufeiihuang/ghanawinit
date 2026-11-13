@@ -1,9 +1,9 @@
 export const navGroups = [
-  ['', ['Home', 'Inbox', 'Calendar']], ['Work', ['Goals', 'Specs', 'Memory']],
-  ['Automation', ['Agents', 'Skills']], ['Workspace', ['Connectors', 'Team']],
+  ['', ['Home', 'Inbox', 'Calendar']], ['Work', ['Goals', 'Specs', 'Library', 'Memory']],
+  ['Automation', ['Agents', 'Skills']], ['Workspace', ['Connectors', 'Collab']],
   ['System', ['Logs', 'Trash', 'Settings', 'Commands']]
 ];
-export const shortcuts = {h:'Home',i:'Inbox',o:'Goals',s:'Specs',m:'Memory',a:'Agents',k:'Skills',c:'Connectors',t:'Team',l:'Logs'};
+export const shortcuts = {h:'Home',i:'Inbox',o:'Goals',s:'Specs',m:'Memory',a:'Agents',k:'Skills',c:'Connectors',t:'Collab',l:'Logs'};
 export const today = [
   ['GitHub', 'GitHub · umami', 'Review #2431 before v4.13 ships', 'Blocks release', '20m', 'yellow'],
   ['Google Calendar','Google Calendar · 4:00 PM','Sprint 25 planning with the team','Meeting','Today','blue'],
