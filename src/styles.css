@@ -61,3 +61,23 @@ select:not([multiple]):focus-visible{border-color:#777}
 .sidebar-customize{margin-top:16px;color:#777;font-size:11px}.sidebar-dialog{top:50%;left:50%;transform:translate(-50%,-50%);max-height:calc(100dvh - 32px);overflow:auto;width:min(480px,calc(100vw - 32px))}.sidebar-dialog>.muted{font-size:12px;margin:0 0 22px}.sidebar-customize-head{display:grid;grid-template-columns:1fr 60px 38px;gap:12px;color:#777;font-size:10px;padding:0 8px 10px;border-bottom:1px solid #262626}.sidebar-customize-head>span:not(:first-child){text-align:center}.sidebar-option{display:flex;align-items:center;gap:12px;min-height:42px;border-bottom:1px solid #1d1d1d;padding:4px 8px}.sidebar-option-name{display:flex;align-items:center;gap:10px;font-size:12px;flex:1}.sidebar-option-name>svg{color:#888}.sidebar-option>.icon-button{width:60px}.sidebar-option input{width:14px;height:14px;margin:0 12px;accent-color:#ddd}.sidebar-order{display:flex;gap:2px}.sidebar-order button{width:22px;height:24px}.sidebar-option button:disabled{opacity:.2;cursor:default}.sidebar-option .favorited svg{fill:#ddd;color:#ddd}
 
 .routine-controls{margin-top:24px}.routine-controls>p{font-size:12px;line-height:19px;margin:8px 0 20px}.routine-controls>label:not(.routine-check){display:flex;flex-direction:column;gap:8px;font-size:12px;margin:20px 0}.routine-check{display:flex!important;flex-direction:row!important;align-items:center;gap:10px;font-size:12px;margin:14px 0}.routine-check input[type=checkbox]{width:14px;height:14px;flex-shrink:0;accent-color:#ddd}.routine-check small{display:block;color:#888;font-size:11px;margin-top:5px}.routine-scope{max-height:220px;overflow:auto;border:1px solid #262626;border-radius:8px;padding:0 14px}.routine-scope .routine-check{margin:12px 0}.organization-moves{margin:20px 0;max-height:45vh;overflow:auto}.organization-moves>div{padding:14px 0;border-bottom:1px solid #262626}.organization-moves strong{display:block;font-size:13px;font-weight:500}.organization-moves span{display:flex;align-items:center;gap:10px;color:#888;font-size:12px;margin-top:8px}#toast button{margin-left:20px;color:#eee;text-decoration:underline;font-size:12px}.lib-breadcrumb{display:flex;align-items:center;gap:8px}.lib-file-name svg{vertical-align:middle;margin-left:5px}
+
+.help-button{display:inline-flex;vertical-align:middle;align-items:center;justify-content:center;width:20px;height:20px;padding:0;margin-left:5px;color:#777;flex-shrink:0}.help-button>span{font-size:10px;font-weight:500;width:13px;height:13px;line-height:11px;border:1px solid #555;border-radius:50%;text-align:center}.help-button:hover,.help-button:focus-visible{color:#eee;background:#222}.help-tooltip{position:fixed;z-index:1000;width:max-content;max-width:min(250px,calc(100vw - 24px));padding:10px 12px;border:1px solid #333;background:#1a1a1a;color:#ddd;border-radius:7px;font-size:12px;font-weight:400;line-height:18px;box-shadow:0 5px 20px #0009;pointer-events:none}h1>.help-button{margin-left:9px;letter-spacing:normal}
+
+.help-label,.lib-keep-row{display:flex;align-items:center;gap:4px}.routine-permission{margin:20px 0}.routine-permission .help-label{margin-bottom:8px;font-size:12px}.routine-permission select{width:100%}.lib-keep-row .routine-check{margin:14px 0}
+
+/* Keep icons on a consistent centerline with their accompanying labels */
+.nav-item>svg,.sidebar-option-name>svg{width:16px;height:16px;display:block;flex:0 0 16px}
+.nav-item>span:not(.nav-key):not(.inbox-count){line-height:18px}
+h1:has(>.help-button),h3:has(>.help-button){display:flex;align-items:center;gap:8px}
+h1>.help-button,h3>.help-button,.help-label>.help-button,.lib-keep-row>.help-button{margin-left:0}
+.help-button{height:20px;width:20px;flex:0 0 20px;line-height:1;letter-spacing:normal}
+.help-button>span{display:grid;place-items:center;line-height:1;width:14px;height:14px;flex:0 0 14px;padding:0}
+.help-label{gap:8px;min-height:20px}
+.routine-check input[type=checkbox]{margin:0;flex:0 0 14px}
+.routine-scope .routine-check{align-items:flex-start;line-height:18px}
+.routine-scope .routine-check>input,.routine-scope .routine-check>svg{margin-top:2px}
+.routine-scope .routine-check>svg{width:14px;height:14px;flex:0 0 14px}
+.lib-file-name .brand>svg{margin:0;width:18px;height:18px}
+.lib-file-name>span:last-child>svg{width:12px;height:12px;margin-left:6px;vertical-align:-1px}
+.sidebar-order .icon-button{display:inline-flex;align-items:center;justify-content:center;line-height:1}
