@@ -93,3 +93,10 @@ School/course joins ask for a school email as a self-reported affiliation. This 
 ### NYU school community
 
 Collab includes a School tab for New York University. The prototype accepts an @nyu.edu address, then uses demo code `123456` to unlock school groups and classmates. The code expires after ten minutes; changing the email restarts the flow. This is a local simulation, not real email delivery or ownership verification. Student sample names migrate from Maya Chen to Yufei Huang without replacing existing goals, notes, or workspace edits.
+
+
+### Routine organization controls
+
+Routine details include explicit Library file/folder scope, read-only or read-and-organize permission, a destination folder, and Ask before organizing (on by default). Run now previews the scoped moves before applying them. Applying rechecks the current access and Keep in place settings. The Undo toast is available for 15 seconds and restores folder locations without overwriting file content or later manual moves. New empty destination folders are removed on undo. There is no activity history.
+
+Library file details and folder breadcrumbs include Keep in place controls. Uploading or organizing files does not publish them to Collab. This is a local browser-storage prototype: organization moves only the selected Library records to the chosen destination, with no AI service, background scheduling, or server-side permission system.
