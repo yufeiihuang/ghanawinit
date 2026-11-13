@@ -1,3 +1,4 @@
+import { workspaceKey } from './workspace-storage.js';
 export const ONBOARDING_KEY = 'speqq-student-onboarding-v1';
 export const STEPS = ['About you', 'Your goal', 'Your courses', 'Try it', 'Your space'];
 
@@ -7,7 +8,7 @@ export function newDraft() {
 
 export function readDraft(storage) {
   try {
-    const saved = JSON.parse(storage.getItem(ONBOARDING_KEY));
+    const saved = JSON.parse(storage.getItem(workspaceKey(ONBOARDING_KEY, storage)));
     if (!saved || typeof saved !== 'object') return newDraft();
     const draft = { ...newDraft(), ...saved };
     draft.step = Math.max(0, Math.min(STEPS.length - 1, Math.trunc(Number(draft.step)) || 0));

@@ -77,3 +77,9 @@ Library metadata and text contents are stored under `speqq-library-v1`. Selected
 ### GitHub Pages
 
 The public prototype is hosted at https://yufeiihuang.github.io/ghanawinit/ from the generated `gh-pages` branch. Source changes remain in their review branches. Build with `npm run build`; publish the contents of `dist/` with a `.nojekyll` file to the deployment branch. Asset paths are relative so the app works under the repository subpath. Browser-local prototype data is separate on each device.
+
+### Seeded student workspace
+
+Use the top-left workspace menu to switch between Umami and Maya’s study space. The student workspace includes biology, chemistry, and calculus notes, study goals, a midterm calendar, and study routines. Student-facing labels use Documents, Connections, and Study routines while Umami retains its original labels and content.
+
+The active choice is stored under `speqq-active-workspace`. Student data uses separate `-student` storage keys for the main workspace, Library, and setup. Seeding only initializes missing records and preserves existing edits in both workspaces. Each visitor gets their own local sample data; this is not a shared multi-user backend.

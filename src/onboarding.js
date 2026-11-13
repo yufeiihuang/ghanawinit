@@ -1,3 +1,4 @@
+import { workspaceKey } from './workspace-storage.js';
 import { icon } from './icons.js';
 import { STEPS, ONBOARDING_KEY, readDraft, canContinue, addCourse, toggleSource } from './onboarding-state.js';
 
@@ -23,7 +24,9 @@ let selectedCourses = [];
 let showManual = false;
 let customizing = false;
 let scanMode = '';
-const workspaceName = () => { try { return JSON.parse(localStorage.getItem('speqq-umami-v1'))?.workspace || 'Umami'; } catch { return 'Umami'; } };
+const workspaceName = () => { try { return JSON.parse(localStorage.getItem(workspaceKey('speqq-umami-v1')))?.workspace || 'Umami'; } catch { return 'Umami'; } };
+
+export function reloadOnboarding() { draft = readDraft(localStorage); notice = ''; importSource = ''; scanMode = ''; }
 
 export function openCustomization() {
   draft.step = 0;
@@ -33,7 +36,7 @@ export function openCustomization() {
   location.hash = 'Onboarding/customize';
 }
 const sampleCourses = ['General Chemistry', 'Cell Biology', 'Calculus I', 'Introduction to Psychology'];
-const persist = () => localStorage.setItem(ONBOARDING_KEY, JSON.stringify(draft));
+const persist = () => localStorage.setItem(workspaceKey(ONBOARDING_KEY), JSON.stringify(draft));
 const b = (text, action, classes = '', attrs = '') => `<button type="button" class="${classes}" data-ob="${action}" ${attrs}>${text}</button>`;
 const field = (label, key, placeholder = '', type = 'text', required = false) => `<label class="ob-field">${label}<input name="${key}" type="${type}" value="${escape(draft[key])}" placeholder="${placeholder}" ${required ? 'required' : ''} maxlength="100"></label>`;
 

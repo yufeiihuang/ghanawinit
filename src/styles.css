@@ -20,3 +20,5 @@ select:not([multiple]):focus-visible{border-color:#777}
 .lib-empty-imports{margin-top:28px}.lib-empty-imports>p{font-size:11px;color:#777;margin-bottom:12px}.lib-empty-imports>div{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}.library-page .empty .lib-import-shortcut{margin:0;padding:6px 10px;border:1px solid #282828;background:#0c0c0c;color:#aaa;font-size:12px}.library-page .empty .lib-import-shortcut:hover{background:#1b1b1b;color:#eee;border-color:#444}
 
 .lib-app-logo{display:block;flex-shrink:0;width:18px;height:18px;object-fit:contain;border-radius:3px}.lib-add-menu>button{gap:10px}.lib-import-shortcut{gap:8px}
+
+.main.student-workspace-view{background-image:none}
