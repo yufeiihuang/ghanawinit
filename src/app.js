@@ -1,6 +1,7 @@
 import { navGroups, shortcuts, today, initialData, filterItems, calendarCells } from './data.js';
 import { icon, brand } from './icons.js';
-import { renderStudentRoute } from './onboarding.js';
+import { renderStudentRoute, openCustomization } from './onboarding.js';
+import { readDraft, needsOnboarding } from './onboarding-state.js';
 
 const STORAGE='speqq-umami-v1';
 let db;
@@ -30,7 +31,7 @@ function sidebar(){
  return `<aside class="sidebar ${state.sidebar?'':'collapsed'}"><div class="workspace-head">${button('<span class="workspace-logo">◒</span><strong>'+esc(db.workspace)+'</strong>'+icon('down',12),'workspace','workspace-button')}${ib('plus','quick-new','Create new')}</div><nav aria-label="Main navigation">${groups.map(([label,names])=>`${label?`<div class="nav-section">${label}</div>`:''}${names.map(name=>{
  const key=Object.keys(shortcuts).find(k=>shortcuts[k]===name);
  const active=settings?name===state.settingsTab:state.page===name;
- return button(`${icon(name==='Back to app'?'left':name==='Profile'?'user':name==='Notifications'?'bell':name==='General'?'globe':name==='Billing'?'Specs':name,15)}<span>${name}</span><span class="nav-key">${name==='Commands'?'⌘ K':key?'G '+key.toUpperCase():''}</span>${name==='Inbox'?`<span class="inbox-count">${db.inbox.filter(x=>x.unread).length}</span>`:''}${name==='Connectors'?'<span class="sync">'+icon('refresh',12)+'</span>':''}`,'nav','nav-item '+(active?'active':''),`data-page="${name}" ${active?'aria-current="page"':''} title="${name}${key?' · G then '+key.toUpperCase():''}"`);
+ return button(`${icon(name==='Back to app'?'left':name==='Profile'?'user':name==='Notifications'?'bell':name==='General'?'globe':name==='Billing'?'Specs':name,15)}<span>${name}</span><span class="nav-key">${name==='Commands'?'⌘ K':key?'G '+key.toUpperCase():''}</span>${name==='Inbox'?`<span class="inbox-count">${db.inbox.filter(x=>x.unread).length}</span>`:''}`,'nav','nav-item '+(active?'active':''),`data-page="${name}" ${active?'aria-current="page"':''} title="${name}${key?' · G then '+key.toUpperCase():''}"`);
  }).join('')}`).join('')}</nav>${!settings?button('<span class="avatar">SR</span><span>'+esc(db.profile.first+' '+db.profile.last)+'</span><span class="spacer"></span>'+icon('down',12),'account','account'):''}</aside>`;
 }
 function header(){
@@ -130,12 +131,15 @@ function menus(){
  let options=[];
  if(m.type==='filter') options=['All',...(state.page==='Inbox'?['Unread','Read','Alert','Review','Mention','Approval']:state.page==='Goals'?['At risk','Off track','Hit']:state.page==='Connectors'?['Connected','Available']:state.page==='Logs'?['Running','Failed','Completed']:state.page==='Team'?['Admin','Member','Invited']:['Draft','In review','Approved'])].map(t=>[t,'choose-filter',`data-filter="${t}"`]);
  else if(m.type==='workspace')options=[[db.workspace+'  ✓','close-menu'],['Workspace settings','workspace-settings'],['Create workspace','create-workspace']];
- else if(m.type==='account')options=[['Sam Rivera · sam@umami.is','close-menu'],['Profile','profile'],['Settings','workspace-settings']];
+ else if(m.type==='account')options=[['Sam Rivera · sam@umami.is','close-menu'],['Profile','profile'],['Customize Speqq','customize-speqq'],['Settings','workspace-settings']];
  else if(m.type==='quick')options=[['New spec','quick-spec'],['New goal','quick-goal'],['New memory','quick-memory'],['New agent','quick-agent']];
  else if(m.type==='ask')options=[['Search all sources  ✓','close-menu'],['Include workspace memory  ✓','close-menu']];
  else if(m.type==='attach')options=[['Add a spec','attach-spec'],['Add project memory','attach-memory'],['Search connected sources','attach-connectors']];
  else options=[['Ask about this','menu-ask'],...(state.page==='Inbox'?[['Mark as read','menu-read'],['Mark all as read','read-all']]:[]),['Rename','rename'],['Move to trash','delete-menu']];
- return `<div class="menu-scrim" data-action="close-menu"></div><div class="popup-menu" style="top:${Math.min(m.y||60,window.innerHeight-240)}px;left:${Math.min(m.x||260,window.innerWidth-235)}px" role="menu">${options.map(([t,a,attrs])=>button(esc(t),a,t.includes('trash')?'danger':'',attrs||'')).join('')}</div>`;
+ const placement=m.type==='account'
+  ? `bottom:${m.bottom}px;left:${m.x}px;width:${m.width}px;min-width:0;max-width:none`
+  : `top:${Math.min(m.y||60,window.innerHeight-240)}px;left:${Math.min(m.x||260,window.innerWidth-235)}px`;
+ return `<div class="menu-scrim" data-action="close-menu"></div><div class="popup-menu" style="${placement}" role="menu">${options.map(([t,a,attrs])=>button(esc(t),a,t.includes('trash')?'danger':'',attrs||'')).join('')}</div>`;
 }
 function modal(){
  if(!state.modal)return '';
@@ -150,6 +154,7 @@ function modal(){
  return `<div class="modal-backdrop" data-action="close-modal"></div><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="dialog-heading"><h2 id="dialog-title">${esc(title)}</h2>${ib('close','close-modal','Close dialog')}</div><form id="edit-form"><label>${type==='invite'?'Email address':type==='add-tag'?'Tag name':type==='add-tab'?'Tab name':'Name'}<input name="title" aria-label="${type==='invite'?'Email address':'Name'}" placeholder="${type==='invite'?'name@company.com':title}" value="${attr(m.value||'')}" ${type==='invite'?'type="email"':''} required autofocus></label>${['create','event','invite'].includes(type)?`<label>${type==='invite'?'Role':'Description'}${type==='invite'?'<select name="role"><option>Member</option><option>Admin</option></select>':'<textarea name="description" rows="3" placeholder="Add a description…"></textarea>'}</label>`:''}${type==='event'?`<div class="form-columns"><label>Date<input type="date" name="date" value="2026-11-11" required></label><label>Type<select name="eventType">${['Meeting','Release','Milestone','Spec','Goal','Launch'].map(t=>`<option>${t}</option>`).join('')}</select></label></div>`:''}<div class="dialog-footer">${button('Cancel','close-modal','subtle')}<button class="primary" type="submit">${['rename','add-tag','add-tab'].includes(type)?'Save':type==='invite'?'Invite':'Create'}</button></div></form></section>`;
 }
 function render(){
+ if(needsOnboarding(readDraft(localStorage), location.hash)) window.history.replaceState(null,'','#Onboarding');
  if(renderStudentRoute(app))return;
  app.innerHTML=`${sidebar()}<main class="main ${state.sidebar?'':'full'}">${header()}<div class="main-scroll">${content()}</div>${composer()}</main>${menus()}${modal()}<div id="toast" role="status"></div>`;
  if(state.modal)setTimeout(()=>document.querySelector('#command-search,.dialog input')?.focus(),0);
@@ -163,7 +168,7 @@ function sanitizeDocument(html){
  return doc.body.innerHTML;
 }
 function toast(text){const t=document.querySelector('#toast');t.textContent=text;t.classList.add('visible');clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>t.classList.remove('visible'),2300);}
-function openMenu(type,e,id){const r=e?.getBoundingClientRect();state.menu={type,id,x:r?.left||260,y:r?r.bottom+5:60};render();}
+function openMenu(type,e,id){const r=e?.getBoundingClientRect();state.menu={type,id,x:r?.left??260,y:r?r.bottom+5:60,bottom:r?window.innerHeight-r.top+8:8,width:r?.width};render();}
 function create(){state.modal={type:state.page==='Team'?'invite':state.page==='Calendar'?'event':'create'};state.menu=null;render();}
 function deleteItem(id){const key=dataKey();const item=db[key]?.find(r=>r.id===id);if(!item)return;db[key]=db[key].filter(r=>r.id!==id);db.trash.push({...item,kind:state.page,key});save();state.detail=null;state.menu=null;render();toast('Moved to trash');}
 function ask(text){if(!text.trim())return;state.chat=true;state.messages.push({role:'user',text:text.trim()},{role:'assistant',text:/billing|invoice|stripe/i.test(text)?'Billing v2 is moving to Stripe. Webhook retries now run through a queue. The remaining issues are annual-to-monthly downgrades and duplicate invoice emails (BILL-219).':/release|v4|2431/i.test(text)?'v4.13 ships tomorrow. Review #2431 is still open and blocks the release. Dana and Priya are on the release; the Milestone 2 demo is due Friday.':'Sessions refresh in refreshSession, 5 minutes before the access token expires. Two tabs refreshing at once is the open bug; #2417 fixes it.'});render();document.querySelector('#ask-input')?.focus();}
@@ -191,6 +196,7 @@ app.addEventListener('click',async e=>{
  case 'close-menu':state.menu=null;render();break;
  case 'close-modal':state.modal=null;render();break;
  case 'workspace-settings':state.page='Settings';state.settingsTab='General';state.menu=null;render();break;
+ case 'customize-speqq':state.menu=null;state.modal=null;openCustomization();break;
  case 'profile':navigate('Settings');state.settingsTab='Profile';render();break;
  case 'new':create();break;
  case 'create-workspace':state.modal={type:'workspace',title:'Create workspace'};state.menu=null;render();break;
@@ -299,7 +305,7 @@ app.addEventListener('submit',e=>{
 app.addEventListener('keydown',e=>{const el=e.target.closest('[data-action]');if((e.key==='Enter'||e.key===' ')&&el&&el.tagName!=='BUTTON'&&!e.target.isContentEditable){e.preventDefault();el.click();}});
 let gTime=0;
 document.addEventListener('keydown',e=>{
- if(['#Onboarding','#Study'].includes(location.hash))return;
+ if(['Onboarding','Study'].includes(location.hash.slice(1).split('/')[0]))return;
  const typing=/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.target.isContentEditable;
  if(e.key==='Escape'){if(state.modal){state.modal=null;render();}else if(state.menu){state.menu=null;render();}else if(state.chat){state.chat=false;render();}return;}
  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();state.modal={type:'commands'};render();return;}

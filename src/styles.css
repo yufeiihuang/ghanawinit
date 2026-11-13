@@ -6,3 +6,8 @@
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 
 @media(max-width:900px){.spec-layout.show-details>.details{display:flex;position:absolute;right:0;top:0;bottom:0;width:280px;z-index:18;overflow:auto;box-shadow:-15px 0 40px #000b}.topbar>.spacer~button[aria-label="Spec details"]{display:inline-flex}}
+
+/* Shared select affordance for workspace settings and onboarding */
+select:not([multiple]){appearance:none;-webkit-appearance:none;background-color:#101010;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23b7b7b7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:16px;padding-right:36px;border-color:#383838;cursor:pointer}
+select:not([multiple]):hover{background-color:#181818;border-color:#555}
+select:not([multiple]):focus-visible{border-color:#777}

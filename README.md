@@ -23,9 +23,11 @@ The build produces a static `dist/` directory that can be served by any static h
 
 ### Student onboarding scaffold
 
-Open `http://127.0.0.1:5173/#Onboarding`, or choose **Set up Speqq for studying** on Home.
+New visitors enter onboarding before reaching the main app, including when opening a workspace deep link. **Skip setup** is available at every step and opens Home immediately. Completing setup also opens Home. Either choice is remembered on this device, and setup can be revisited from Home. The bottom-left profile menu includes **Customize Speqq**, which opens saved settings with direct section navigation and **Save and return**, without repeating the demo step.
 
-The five-step student flow collects study context, a starting goal, courses, and optional source preferences or files; demonstrates a connection between two sample courses; and opens a personalized study space at `#Study`. Draft progress resumes on this device, independently of the original workspace. Markdown/text contents are stored locally; PDFs and photos are listed only. The example connection is explicitly sample-based. Direct source connections, OCR, phone scanning, AI analysis, and scheduled review notifications remain future work.
+The five-step flow first asks whether the user is a Student, Educator, Researcher, or Other, then collects study context, a starting goal, courses, and optional source preferences or files; demonstrates a connection between two sample courses; and opens a personalized study space at `#Study`. Draft progress resumes on this device, independently of the original workspace. Markdown/text contents are stored locally; PDFs and photos are listed only. The example connection is explicitly sample-based. Direct source connections, OCR, phone scanning, AI analysis, and scheduled review notifications remain future work.
+
+Onboarding reuses the workspace page, navigation, connector-card, primary-button, typography, and native select styles instead of maintaining separate visual overrides. The course-import screen matches the original workspace's neutral black and gray styling. Canvas, Brightspace, and mySchoolApp open a simulated course picker; transcript selection opens the same sample review flow. Students can select courses, add them manually, remove them, or skip this step. Connections and transcript extraction are demo simulations with fixed sample courses, not real API calls or document parsing. Only transcript filenames and sizes are retained locally. No credentials or file contents are sent to a service.
 
 This draft focuses on STEM/pre-med students and a first experience connecting concepts across semesters. It uses **routine** rather than **agent** in the student space. The original workspace remains available at `#Home`.
 
@@ -61,3 +63,7 @@ Edits persist in the current browser under `speqq-umami-v1`. Clear that local st
 - `tests/data.test.mjs`: data isolation, search and calendar edge cases.
 
 Keyboard shortcuts: `G` then `H/I/O/S/M/A/K/C/T/L` opens the corresponding sidebar section. `⌘/Ctrl K` opens commands, `⌘/Ctrl J` opens Ask Speqq, `⌘/Ctrl B` toggles the sidebar, and `⌘/Ctrl N` creates a spec. `Escape` dismisses dialogs and panels.
+
+### Handwritten note scan demo
+
+Under Upload notes, Scan with your phone opens a QR panel. Preview phone upload shows a camera/file picker and a sample-photo action. The bundled QR encodes the local `http://127.0.0.1:5173/#Onboarding/phone` demo route; it is not a remote upload session. Cross-device transfer and handwriting recognition are simulated for the case-competition prototype. Actual file selections use the existing local note-file handling.
