@@ -5,7 +5,7 @@ import { newDraft, readDraft, canContinue, addCourse, toggleSource, needsOnboard
 test('setup requires study context and one goal, but never requires migration', () => {
   const draft = newDraft();
   assert.equal(canContinue(draft), false);
-  draft.name = 'Maya'; draft.major = 'Biology';
+  draft.major = 'Biology';
   assert.equal(canContinue(draft), false);
   draft.role = 'Student';
   assert.equal(canContinue(draft), true);

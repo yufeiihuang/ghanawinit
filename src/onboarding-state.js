@@ -18,7 +18,7 @@ export function readDraft(storage) {
 }
 
 export function canContinue(draft) {
-  if (draft.step === 0) return Boolean(draft.name.trim() && draft.major.trim() && ['Student', 'Educator', 'Researcher', 'Other'].includes(draft.role));
+  if (draft.step === 0) return Boolean(draft.major.trim() && ['Student', 'Educator', 'Researcher', 'Other'].includes(draft.role));
   if (draft.step === 1) return Boolean(draft.goal);
   return true;
 }
