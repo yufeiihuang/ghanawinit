@@ -211,7 +211,7 @@ function render(){
  if(needsOnboarding(readDraft(localStorage), location.hash)) window.history.replaceState(null,'','#Onboarding');
  if(renderStudentRoute(app)){bindLibrary(app,render,false);bindCollab(app,render,false);return;}
  app.innerHTML=`${sidebar()}<main class="main ${state.sidebar?'':'full'} ${db.kind==='student'?'student-workspace-view':''}">${header()}<div class="main-scroll">${content()}</div>${composer()}</main>${menus()}${modal()}<div id="toast" role="status"></div>`;
- bindLibrary(app,render,state.page==='Library');
+ bindLibrary(app,render,state.page==='Library',toast);
  bindCollab(app,render,state.page==='Collab');
  if(state.modal)setTimeout(()=>document.querySelector('#command-search,.dialog input')?.focus(),0);
  document.title=(state.detail?current()?.title:pageLabel(state.page))+' · '+db.workspace;
