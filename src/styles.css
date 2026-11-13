@@ -16,3 +16,5 @@ select:not([multiple]):focus-visible{border-color:#777}
 @media(max-width:900px){.lib-folders,.lib-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lib-table-head,.lib-file{grid-template-columns:minmax(140px,2fr) 1fr 65px}.lib-file>span:nth-child(3),.lib-file>span:nth-child(4),.lib-table-head>span:nth-child(3),.lib-table-head>span:nth-child(4){display:none}}
 @media(max-width:650px){.lib-grid,.lib-folders{grid-template-columns:1fr}.lib-table-head,.lib-file{grid-template-columns:minmax(120px,1fr) 65px}.lib-file>span:nth-child(2),.lib-table-head>span:nth-child(2){display:none}.lib-qr{flex-direction:column}.lib-dialog{max-height:80vh;overflow:auto}}
 .main:has(.library-page){background-image:none}
+
+.lib-empty-imports{margin-top:28px}.lib-empty-imports>p{font-size:11px;color:#777;margin-bottom:12px}.lib-empty-imports>div{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}.library-page .empty .lib-import-shortcut{margin:0;padding:6px 10px;border:1px solid #282828;background:#0c0c0c;color:#aaa;font-size:12px}.library-page .empty .lib-import-shortcut:hover{background:#1b1b1b;color:#eee;border-color:#444}
