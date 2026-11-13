@@ -66,10 +66,20 @@ Keyboard shortcuts: `G` then `H/I/O/S/M/A/K/C/T/L` opens the corresponding sideb
 
 ### Handwritten note scan demo
 
-Under Upload notes, Scan with your phone opens a QR panel. Preview phone upload shows a camera/file picker and a sample-photo action. The bundled QR encodes the local `http://127.0.0.1:5173/#Onboarding/phone` demo route; it is not a remote upload session. Cross-device transfer and handwriting recognition are simulated for the case-competition prototype. Actual file selections use the existing local note-file handling.
+Under Upload notes, Scan with your phone opens a QR panel. Preview phone upload shows a camera/file picker and a sample-photo action. The bundled QR encodes the published `https://yufeiihuang.github.io/ghanawinit/#Onboarding/phone` demo route; it is not a remote upload session. Cross-device transfer and handwriting recognition are simulated for the case-competition prototype. Actual file selections use the existing local note-file handling.
 
 ### Library
 
 Library lives under Work and provides a Drive-style file list, grid view, search, course folders, custom folders, previews, and folder assignment. Notes and transcripts selected during setup are included automatically. The + New menu supports files, pictures, phone scans, and simulated imports from Notability, Notion, Goodnotes, and Obsidian. Imports use fixed sample Markdown notes; no external accounts are accessed.
 
 Library metadata and text contents are stored under `speqq-library-v1`. Selected images can be previewed during the current page session; binary file contents are not retained across reloads. The QR and sample-photo flows are demo interactions, not cross-device transfer or OCR.
+
+### GitHub Pages
+
+The public prototype is hosted at https://yufeiihuang.github.io/ghanawinit/ from the generated `gh-pages` branch. Source changes remain in their review branches. Build with `npm run build`; publish the contents of `dist/` with a `.nojekyll` file to the deployment branch. Asset paths are relative so the app works under the repository subpath. Browser-local prototype data is separate on each device.
+
+### Seeded student workspace
+
+Use the top-left workspace menu to switch between Umami and Maya’s study space. The student workspace includes biology, chemistry, and calculus notes, study goals, a midterm calendar, and study routines. Student-facing labels use Documents, Connections, and Study routines while Umami retains its original labels and content.
+
+The active choice is stored under `speqq-active-workspace`. Student data uses separate `-student` storage keys for the main workspace, Library, and setup. Seeding only initializes missing records and preserves existing edits in both workspaces. Each visitor gets their own local sample data; this is not a shared multi-user backend.
