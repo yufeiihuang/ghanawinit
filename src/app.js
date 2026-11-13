@@ -136,7 +136,10 @@ function menus(){
  else if(m.type==='ask')options=[['Search all sources  ✓','close-menu'],['Include workspace memory  ✓','close-menu']];
  else if(m.type==='attach')options=[['Add a spec','attach-spec'],['Add project memory','attach-memory'],['Search connected sources','attach-connectors']];
  else options=[['Ask about this','menu-ask'],...(state.page==='Inbox'?[['Mark as read','menu-read'],['Mark all as read','read-all']]:[]),['Rename','rename'],['Move to trash','delete-menu']];
- return `<div class="menu-scrim" data-action="close-menu"></div><div class="popup-menu" style="top:${Math.min(m.y||60,window.innerHeight-240)}px;left:${Math.min(m.x||260,window.innerWidth-235)}px" role="menu">${options.map(([t,a,attrs])=>button(esc(t),a,t.includes('trash')?'danger':'',attrs||'')).join('')}</div>`;
+ const placement=m.type==='account'
+  ? `bottom:${m.bottom}px;left:${m.x}px;width:${m.width}px;min-width:0;max-width:none`
+  : `top:${Math.min(m.y||60,window.innerHeight-240)}px;left:${Math.min(m.x||260,window.innerWidth-235)}px`;
+ return `<div class="menu-scrim" data-action="close-menu"></div><div class="popup-menu" style="${placement}" role="menu">${options.map(([t,a,attrs])=>button(esc(t),a,t.includes('trash')?'danger':'',attrs||'')).join('')}</div>`;
 }
 function modal(){
  if(!state.modal)return '';
@@ -165,7 +168,7 @@ function sanitizeDocument(html){
  return doc.body.innerHTML;
 }
 function toast(text){const t=document.querySelector('#toast');t.textContent=text;t.classList.add('visible');clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>t.classList.remove('visible'),2300);}
-function openMenu(type,e,id){const r=e?.getBoundingClientRect();state.menu={type,id,x:r?.left||260,y:r?r.bottom+5:60};render();}
+function openMenu(type,e,id){const r=e?.getBoundingClientRect();state.menu={type,id,x:r?.left??260,y:r?r.bottom+5:60,bottom:r?window.innerHeight-r.top+8:8,width:r?.width};render();}
 function create(){state.modal={type:state.page==='Team'?'invite':state.page==='Calendar'?'event':'create'};state.menu=null;render();}
 function deleteItem(id){const key=dataKey();const item=db[key]?.find(r=>r.id===id);if(!item)return;db[key]=db[key].filter(r=>r.id!==id);db.trash.push({...item,kind:state.page,key});save();state.detail=null;state.menu=null;render();toast('Moved to trash');}
 function ask(text){if(!text.trim())return;state.chat=true;state.messages.push({role:'user',text:text.trim()},{role:'assistant',text:/billing|invoice|stripe/i.test(text)?'Billing v2 is moving to Stripe. Webhook retries now run through a queue. The remaining issues are annual-to-monthly downgrades and duplicate invoice emails (BILL-219).':/release|v4|2431/i.test(text)?'v4.13 ships tomorrow. Review #2431 is still open and blocks the release. Dana and Priya are on the release; the Milestone 2 demo is due Friday.':'Sessions refresh in refreshSession, 5 minutes before the access token expires. Two tabs refreshing at once is the open bug; #2417 fixes it.'});render();document.querySelector('#ask-input')?.focus();}
