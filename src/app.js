@@ -153,7 +153,7 @@ function menus(){
  const m=state.menu;
  let options=[];
  if(m.type==='filter') options=['All',...(state.page==='Inbox'?['Unread','Read','Alert','Review','Mention','Approval']:state.page==='Goals'?['At risk','Off track','Hit']:state.page==='Connectors'?['Connected','Available']:state.page==='Logs'?['Running','Failed','Completed']:state.page==='Team'?['Admin','Member','Invited']:['Draft','In review','Approved'])].map(t=>[t,'choose-filter',`data-filter="${t}"`]);
- else if(m.type==='workspace')options=[['Umami'+(activeWorkspace()==='umami'?'  ✓':''),'switch-workspace','data-workspace="umami"'],['Maya’s study space'+(activeWorkspace()==='student'?'  ✓':''),'switch-workspace','data-workspace="student"'],['Workspace settings','workspace-settings'],['Create workspace','create-workspace']];
+ else if(m.type==='workspace')options=[['Umami'+(activeWorkspace()==='umami'?'  ✓':''),'switch-workspace','data-workspace="umami"'],['Yufei’s study space'+(activeWorkspace()==='student'?'  ✓':''),'switch-workspace','data-workspace="student"'],['Workspace settings','workspace-settings'],['Create workspace','create-workspace']];
  else if(m.type==='account')options=[[db.profile.first+' '+db.profile.last,'close-menu'],['Profile','profile'],['Customize Speqq','customize-speqq'],['Settings','workspace-settings']];
  else if(m.type==='quick')options=[['New spec','quick-spec'],['New goal','quick-goal'],['New memory','quick-memory'],['New agent','quick-agent']];
  else if(m.type==='ask')options=[['Search all sources  ✓','close-menu'],['Include workspace memory  ✓','close-menu']];

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { collabSeed } from '../src/collab.js';
+import { collabSeed, isNyuEmail, requestSchoolCode, confirmSchoolCode } from '../src/collab.js';
 test('student Collab groups reference known people and include school/course groups',()=>{
  const seed=collabSeed(true),ids=new Set(seed.people.map(p=>p.id));
  assert.ok(seed.groups.some(g=>g.type==='School'));
@@ -15,4 +15,21 @@ test('non-student Collab seeds project/research groups without school affiliatio
  assert.ok(seed.groups.some(g=>g.type==='Project'));
  assert.ok(seed.groups.some(g=>g.type==='Research'));
  assert.ok(seed.groups.every(g=>!g.school));
+});
+
+test('NYU email verification is a gated demo with invalid-code and expiry handling',()=>{
+ const state=collabSeed(true);
+ assert.equal(isNyuEmail('student@gmail.com'),false);
+ assert.equal(isNyuEmail('person@nyu.edu.evil.example'),false);
+ assert.equal(requestSchoolCode(state,'person@example.com',1000),false);
+ assert.equal(confirmSchoolCode(state,'123456',1001),false);
+ assert.equal(requestSchoolCode(state,'  Yufei@NYU.EDU ',1000),true);
+ assert.equal(state.schoolVerification.email,'yufei@nyu.edu');
+ assert.equal(confirmSchoolCode(state,'999999',2000),false);
+ assert.equal(state.schoolVerification.status,'pending');
+ assert.equal(confirmSchoolCode(state,'123456',700000),false);
+ requestSchoolCode(state,'yufei@nyu.edu',800000);
+ assert.equal(confirmSchoolCode(state,'123456',800001),true);
+ assert.equal(state.schoolVerification.status,'verified');
+ assert.equal(state.schoolEmail,'yufei@nyu.edu');
 });
