@@ -16,7 +16,7 @@ const state={page:'Home',detail:null,query:'',sort:false,filter:'All',expanded:'
 const app=document.querySelector('#app');
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const attr=esc;
-const pageLabel=name=>db.kind==='student'?({Specs:'Documents',Agents:'Study routines',Memory:'Connections'}[name]||name):name;
+const pageLabel=name=>db.kind==='student'?({Specs:'Documents',Agents:'Study routines',Memory:'Memories'}[name]||name):name;
 const homeCards=()=>db.kind==='student'?studentToday:today;
 const initials=()=>[db.profile.first,db.profile.last].map(n=>n?.[0]||'').join('');
 const save=()=>localStorage.setItem(STORAGE,JSON.stringify(db));
@@ -29,6 +29,7 @@ const current=()=>db[dataKey()]?.find(x=>x.id===state.detail);
 const empty=(title,sub='Try a different search.')=>`<div class="empty">${icon(state.page,30)}<h3>${esc(title)}</h3><p>${esc(sub)}</p></div>`;
 
 function navigate(page,detail=null,record=true){
+ if(db.kind==='student'&&page==='Logs'){page='Home';detail=null;}
  if(record){state.history.push({page:state.page,detail:state.detail});state.future=[];}
  state.page=page;state.detail=detail;state.query='';state.filter='All';state.menu=null;state.modal=null;state.specTab='Overview';
  window.history.replaceState(null,'','#'+page+(detail?'/'+detail:''));
@@ -37,7 +38,7 @@ function navigate(page,detail=null,record=true){
 function sidebar(){
  const settings=state.page==='Settings';
  const groups=settings?[['',["Back to app"]],['Account',['Profile','Notifications']],['Workspace',['General','Team','Billing']],['Features',['Home','Goals','Specs','Agents','Skills','Memory']]]:navGroups;
- return `<aside class="sidebar ${state.sidebar?'':'collapsed'}"><div class="workspace-head">${button('<span class="workspace-logo">◒</span><strong>'+esc(db.workspace)+'</strong>'+icon('down',12),'workspace','workspace-button')}${ib('plus','quick-new','Create new')}</div><nav aria-label="Main navigation">${groups.map(([label,names])=>`${label?`<div class="nav-section">${label}</div>`:''}${names.map(name=>{
+ return `<aside class="sidebar ${state.sidebar?'':'collapsed'}"><div class="workspace-head">${button('<span class="workspace-logo">◒</span><strong>'+esc(db.workspace)+'</strong>'+icon('down',12),'workspace','workspace-button')}${ib('plus','quick-new','Create new')}</div><nav aria-label="Main navigation">${groups.map(([label,names])=>`${label?`<div class="nav-section">${label}</div>`:''}${names.filter(name=>db.kind!=='student'||name!=='Logs').map(name=>{
  const key=Object.keys(shortcuts).find(k=>shortcuts[k]===name);
  const active=settings?name===state.settingsTab:state.page===name;
  return button(`${icon(name==='Back to app'?'left':name==='Profile'?'user':name==='Notifications'?'bell':name==='General'?'globe':name==='Billing'?'Specs':name,15)}<span>${esc(pageLabel(name))}</span><span class="nav-key">${name==='Commands'?'⌘ K':key?'G '+key.toUpperCase():''}</span>${name==='Inbox'?`<span class="inbox-count">${db.inbox.filter(x=>x.unread).length}</span>`:''}`,'nav','nav-item '+(active?'active':''),`data-page="${name}" ${active?'aria-current="page"':''} title="${name}${key?' · G then '+key.toUpperCase():''}"`);
@@ -53,7 +54,7 @@ function toolbar(){
  if(state.page==='Goals')selection=`<select aria-label="Goal quarter" data-change="quarter"><option>Q4 2026  4</option><option>Q3 2026</option><option>All quarters</option></select>`;
  if(state.page==='Skills')selection=`<select aria-label="Skills view" data-change="skill-filter"><option>My skills  ${db.skills.filter(x=>x.on).length}</option><option>All skills</option></select>`;
  if(state.page==='Team')selection=`<select aria-label="Team view" data-change="team-filter"><option>People  ${db.team.length}</option><option>Teams</option></select>`;
- if(state.page==='Connectors')selection=`<select aria-label="Connector type" data-change="connector-filter"><option>Connectors</option><option>Connected</option><option>Available</option></select>`;
+ if(state.page==='Connectors')selection=`<label class="connector-role-control"><span>For</span><select aria-label="Connector suggestions role" data-change="connector-role">${Object.keys(roles).map(role=>`<option ${role===(roles[db.profile.role]?db.profile.role:defaultRole)?'selected':''}>${esc(role)}</option>`).join('')}</select></label><select aria-label="Connector type" data-change="connector-filter">${['Connectors','Connected','Available'].map(value=>`<option ${(state.filter==='All'?'Connectors':state.filter)===value?'selected':''}>${value}</option>`).join('')}</select>`;
  return `<div class="toolbar"><label class="search">${icon('search',15)}<input id="list-search" aria-label="Search ${state.page.toLowerCase()}" placeholder="Search ${state.page.toLowerCase()}" value="${attr(state.query)}" autocomplete="off"></label><span class="spacer"></span>${selection}${ib('filter','filter','Filter')}${ib('sort','sort','Sort')}${actionNames[state.page]?button(icon('plus',15)+actionNames[state.page],'new','primary'):''}</div>${state.filter!=='All'?`<div class="active-filter">${button(esc(state.filter)+' ×','clear-filter','badge')}</div>`:''}`;
 }
 function home(){
@@ -91,7 +92,7 @@ function connectorView(){
  const available=list.filter(r=>!r.connected&&!suggested.includes(r));
  const groups=connectorCategories.map(([name])=>section(name,available.filter(r=>connectorCategory(r.title)===name))).join('');
  return [
-  section('Suggested',suggested,`<span class="connector-hint">${esc(roles[role].notA)} <button class="link" data-action="profile">Change role</button></span>`,'suggested'),
+  section('Suggested',suggested,'','suggested'),
   showConnected?section('Connected',list.filter(r=>r.connected)):'',
   showAvailable&&groups?`<section class="connector-section"><h3>Available</h3><div class="connector-subsections">${groups}</div></section>`:''
  ].join('')||empty('No connectors found');
@@ -165,7 +166,7 @@ function modal(){
  if(!state.modal)return '';
  const m=state.modal;
  if(m.type==='commands'){
- const commands=[['Ask Speqq','open-chat'],['Navigation: Go home','command-home'],['Sidebar: Toggle sidebar','sidebar'],['Inbox: Open inbox','command-Inbox'],['Inbox: Mark all as read','read-all'],...['Goals','Specs','Memory','Agents','Skills','Connectors','Team','Logs','Trash','Settings'].map(n=>[n+': Open '+n.toLowerCase(),'command-'+n]),['Specs: New spec','quick-spec'],['Goals: New goal','quick-goal'],['Agents: New agent','quick-agent']];
+ const commands=[['Ask Speqq','open-chat'],['Navigation: Go home','command-home'],['Sidebar: Toggle sidebar','sidebar'],['Inbox: Open inbox','command-Inbox'],['Inbox: Mark all as read','read-all'],...['Goals','Specs','Memory','Agents','Skills','Connectors','Team','Logs','Trash','Settings'].filter(n=>db.kind!=='student'||n!=='Logs').map(n=>[n+': Open '+n.toLowerCase(),'command-'+n]),['Specs: New spec','quick-spec'],['Goals: New goal','quick-goal'],['Agents: New agent','quick-agent']];
  return `<div class="modal-backdrop" data-action="close-modal"></div><section class="command-dialog" role="dialog" aria-modal="true" aria-label="Commands"><div class="command-search"><input id="command-search" aria-label="Select a command" placeholder="Select a command…" autofocus>${ib('close','close-modal','Close commands')}</div><div class="command-results"><small>Recent</small>${button(icon('Specs')+'Navigation — get back to where you were'+badge('Spec'),'recent-spec','command-option')}<small>Commands</small>${commands.map(([t,a])=>button(esc(t),a,'command-option',`data-command="${attr(t.toLowerCase())}"`)).join('')}</div><footer>↑↓ to navigate　 ↵ to use　 esc to dismiss</footer></section>`;
  }
  if(m.type==='share')return `<div class="modal-backdrop" data-action="close-modal"></div><section class="dialog" role="dialog" aria-modal="true" aria-label="Share spec"><div class="dialog-heading"><h2>Share ${esc(current()?.title||'spec')}</h2>${ib('close','close-modal','Close share')}</div><label>Invite people<input placeholder="Email address" type="email" id="share-email"></label><div class="share-person">${avatars('SR')}Sam Rivera<span class="spacer"></span>${badge('Owner')}</div><div class="dialog-footer">${button(icon('copy',14)+' Copy link','copy-link','subtle')}${button('Done','close-modal','primary')}</div></section>`;
@@ -174,6 +175,7 @@ function modal(){
  return `<div class="modal-backdrop" data-action="close-modal"></div><section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title"><div class="dialog-heading"><h2 id="dialog-title">${esc(title)}</h2>${ib('close','close-modal','Close dialog')}</div><form id="edit-form"><label>${type==='invite'?'Email address':type==='add-tag'?'Tag name':type==='add-tab'?'Tab name':'Name'}<input name="title" aria-label="${type==='invite'?'Email address':'Name'}" placeholder="${type==='invite'?'name@company.com':title}" value="${attr(m.value||'')}" ${type==='invite'?'type="email"':''} required autofocus></label>${['create','event','invite'].includes(type)?`<label>${type==='invite'?'Role':'Description'}${type==='invite'?'<select name="role"><option>Member</option><option>Admin</option></select>':'<textarea name="description" rows="3" placeholder="Add a description…"></textarea>'}</label>`:''}${type==='event'?`<div class="form-columns"><label>Date<input type="date" name="date" value="2026-11-11" required></label><label>Type<select name="eventType">${['Meeting','Release','Milestone','Spec','Goal','Launch'].map(t=>`<option>${t}</option>`).join('')}</select></label></div>`:''}<div class="dialog-footer">${button('Cancel','close-modal','subtle')}<button class="primary" type="submit">${['rename','add-tag','add-tab'].includes(type)?'Save':type==='invite'?'Invite':'Create'}</button></div></form></section>`;
 }
 function render(){
+ if(db.kind==='student'&&state.page==='Logs'){state.page='Home';state.detail=null;window.history.replaceState(null,'','#Home');}
  if(needsOnboarding(readDraft(localStorage), location.hash)) window.history.replaceState(null,'','#Onboarding');
  if(renderStudentRoute(app)){bindLibrary(app,render,false);return;}
  app.innerHTML=`${sidebar()}<main class="main ${state.sidebar?'':'full'} ${db.kind==='student'?'student-workspace-view':''}">${header()}<div class="main-scroll">${content()}</div>${composer()}</main>${menus()}${modal()}<div id="toast" role="status"></div>`;
@@ -296,6 +298,7 @@ app.addEventListener('change',e=>{
  if(kind==='version'){r.version=e.target.value;save();toast('Version selected');}
  if(kind==='role'){r.role=e.target.value;save();}
  if(kind==='agent-trigger'){r.trigger=e.target.value;save();}
+ if(kind==='connector-role'){db.profile.role=e.target.value;save();render();}
  if(kind==='connector-filter'){state.filter=e.target.value==='Connectors'?'All':e.target.value;render();}
  if(kind==='event-filter'){state.filter=e.target.value;render();}
  if(kind==='quarter'){state.query=e.target.value==='Q3 2026'?'__none__':'';render();}

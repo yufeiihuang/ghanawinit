@@ -30,3 +30,5 @@ select:not([multiple]):focus-visible{border-color:#777}
 .connector-section.suggested .connector-card{border-color:#262626;background:#0c0c0c}
 .profile-fields select{width:220px;height:32px}
 @media(max-width:650px){.profile-fields select{width:100%}}
+
+.connector-role-control{display:flex;align-items:center;gap:8px;font-size:11px;color:#808080;white-space:nowrap}.connector-role-control select{height:32px;max-width:160px}.toolbar:has(.connector-role-control){flex-wrap:wrap;height:auto}
