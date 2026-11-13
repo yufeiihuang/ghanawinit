@@ -1,3 +1,4 @@
+import { renderCollab, bindCollab } from './collab.js';
 import { activeWorkspace, workspaceKey, ACTIVE_WORKSPACE_KEY } from './workspace-storage.js';
 import { studentWorkspace, studentToday, seedStudentWorkspace } from './student-workspace.js';
 import { navGroups, shortcuts, today, initialData, filterItems, calendarCells, connectorCategories, connectorCategory, roles, defaultRole, suggestedConnectors } from './data.js';
@@ -134,6 +135,7 @@ function settings(){
  return `<h1>${t}</h1><section class="panel"><h3>${t} settings</h3><p class="muted">Manage ${t.toLowerCase()} for your workspace.</p><label class="setting-toggle">Enable ${t}<input type="checkbox" data-preference="feature-${t}" ${db['feature-'+t]!==false?'checked':''}></label>${t==='Team'?button('Manage team','settings-team','subtle'):''}</section>`;
 }
 function content(){
+ if(state.page==='Collab')return renderCollab(db);
  if(state.page==='Library')return renderLibrary();
  if(state.page==='Home')return home();
  if(state.page==='Settings')return `<div class="page settings-page">${settings()}</div>`;
@@ -143,7 +145,7 @@ function content(){
  return `<div class="page"><h1>${esc(pageLabel(state.page))}</h1>${state.page==='Calendar'?calendar():toolbar()+(state.page==='Connectors'?connectorView():state.page==='Logs'?`<div class="runs-chart"><div>Runs <span class="muted">12</span></div><div class="chart-bars">${Array.from({length:64},(_,i)=>`<span style="height:${5+(i*17%55)}px"></span>`).join('')}</div><div class="chart-axis"><span>Oct 5 12:24</span><span>Oct 6 00:24</span><span>Oct 6 12:24</span></div></div>${rows()}`:rows())}</div>`;
 }
 function composer(){
- if(['Settings','Library'].includes(state.page))return '';
+ if(['Settings','Library','Collab'].includes(state.page))return '';
  return `<div class="ask-dock ${state.chat?'is-chat':''} ${state.chatExpanded?'expanded':''}">${state.chat?`<section class="chat-window"><header>${icon('chat',16)}<strong>Ask Speqq</strong><span class="spacer"></span>${ib('check','like-answer','Helpful answer')}${ib('minus','minimize-chat','Minimize')}${ib('expand','expand-chat','Expand')}${ib('close','close-chat','Close conversation')}</header><div class="messages">${state.messages.map(m=>m.role==='user'?`<div class="user-message">${esc(m.text)}</div>`:`<div class="answer"><p>${esc(m.text)}</p><div class="source-chips">${db.kind==='student'?badge('Library · Membrane transport')+badge('Library · Electrochemical gradients'):badge('◕ #2417')+badge('◒ WEB-1182')+badge('◕ session.ts')}</div>${button(icon('down',12)+' All 7 sources','sources','sources-button')}${state.sources?`<div class="sources-list">${['GitHub · #2417 Fix concurrent session refresh','Linear · WEB-1182','GitHub · src/lib/session.ts','Spec · Session management','Slack · #umami-team','Memory · Session refresh','GitHub · #2421'].map(s=>`<div>${esc(s)}</div>`).join('')}</div>`:''}</div>`).join('')}</div></section>`:''}<form id="ask-form" class="composer">${ib('plus','attach','Add context')}<input name="question" id="ask-input" aria-label="${state.chat?'Ask a follow-up':'Ask about '+esc(db.workspace)}" placeholder="${state.chat?'Ask a follow-up':'Ask about '+esc(db.workspace)}" autocomplete="off">${!state.chat?ib('chat','open-chat','Open Ask Speqq'):''}${ib('down','ask-options','Question options')}<button class="send" type="submit" aria-label="Send question">${icon('arrow',20)}</button></form></div>`;
 }
 function menus(){
@@ -166,7 +168,7 @@ function modal(){
  if(!state.modal)return '';
  const m=state.modal;
  if(m.type==='commands'){
- const commands=[['Ask Speqq','open-chat'],['Navigation: Go home','command-home'],['Sidebar: Toggle sidebar','sidebar'],['Inbox: Open inbox','command-Inbox'],['Inbox: Mark all as read','read-all'],...['Goals','Specs','Memory','Agents','Skills','Connectors','Team','Logs','Trash','Settings'].filter(n=>db.kind!=='student'||n!=='Logs').map(n=>[n+': Open '+n.toLowerCase(),'command-'+n]),['Specs: New spec','quick-spec'],['Goals: New goal','quick-goal'],['Agents: New agent','quick-agent']];
+ const commands=[['Ask Speqq','open-chat'],['Navigation: Go home','command-home'],['Sidebar: Toggle sidebar','sidebar'],['Inbox: Open inbox','command-Inbox'],['Inbox: Mark all as read','read-all'],...['Goals','Specs','Memory','Agents','Skills','Connectors','Collab','Logs','Trash','Settings'].filter(n=>db.kind!=='student'||n!=='Logs').map(n=>[n+': Open '+n.toLowerCase(),'command-'+n]),['Specs: New spec','quick-spec'],['Goals: New goal','quick-goal'],['Agents: New agent','quick-agent']];
  return `<div class="modal-backdrop" data-action="close-modal"></div><section class="command-dialog" role="dialog" aria-modal="true" aria-label="Commands"><div class="command-search"><input id="command-search" aria-label="Select a command" placeholder="Select a command…" autofocus>${ib('close','close-modal','Close commands')}</div><div class="command-results"><small>Recent</small>${button(icon('Specs')+'Navigation — get back to where you were'+badge('Spec'),'recent-spec','command-option')}<small>Commands</small>${commands.map(([t,a])=>button(esc(t),a,'command-option',`data-command="${attr(t.toLowerCase())}"`)).join('')}</div><footer>↑↓ to navigate　 ↵ to use　 esc to dismiss</footer></section>`;
  }
  if(m.type==='share')return `<div class="modal-backdrop" data-action="close-modal"></div><section class="dialog" role="dialog" aria-modal="true" aria-label="Share spec"><div class="dialog-heading"><h2>Share ${esc(current()?.title||'spec')}</h2>${ib('close','close-modal','Close share')}</div><label>Invite people<input placeholder="Email address" type="email" id="share-email"></label><div class="share-person">${avatars('SR')}Sam Rivera<span class="spacer"></span>${badge('Owner')}</div><div class="dialog-footer">${button(icon('copy',14)+' Copy link','copy-link','subtle')}${button('Done','close-modal','primary')}</div></section>`;
@@ -177,9 +179,10 @@ function modal(){
 function render(){
  if(db.kind==='student'&&state.page==='Logs'){state.page='Home';state.detail=null;window.history.replaceState(null,'','#Home');}
  if(needsOnboarding(readDraft(localStorage), location.hash)) window.history.replaceState(null,'','#Onboarding');
- if(renderStudentRoute(app)){bindLibrary(app,render,false);return;}
+ if(renderStudentRoute(app)){bindLibrary(app,render,false);bindCollab(app,render,false);return;}
  app.innerHTML=`${sidebar()}<main class="main ${state.sidebar?'':'full'} ${db.kind==='student'?'student-workspace-view':''}">${header()}<div class="main-scroll">${content()}</div>${composer()}</main>${menus()}${modal()}<div id="toast" role="status"></div>`;
  bindLibrary(app,render,state.page==='Library');
+ bindCollab(app,render,state.page==='Collab');
  if(state.modal)setTimeout(()=>document.querySelector('#command-search,.dialog input')?.focus(),0);
  document.title=(state.detail?current()?.title:pageLabel(state.page))+' · '+db.workspace;
 }
@@ -192,7 +195,7 @@ function sanitizeDocument(html){
 }
 function toast(text){const t=document.querySelector('#toast');t.textContent=text;t.classList.add('visible');clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>t.classList.remove('visible'),2300);}
 function openMenu(type,e,id){const r=e?.getBoundingClientRect();state.menu={type,id,x:r?.left??260,y:r?r.bottom+5:60,bottom:r?window.innerHeight-r.top+8:8,width:r?.width};render();}
-function create(){if(state.page==='Library'){document.querySelector('[data-lib="new"]')?.click();return;}state.modal={type:state.page==='Team'?'invite':state.page==='Calendar'?'event':'create'};state.menu=null;render();}
+function create(){if(state.page==='Collab'){document.querySelector('[data-collab="create"],[data-collab="invite"]')?.click();return;}if(state.page==='Library'){document.querySelector('[data-lib="new"]')?.click();return;}state.modal={type:state.page==='Team'?'invite':state.page==='Calendar'?'event':'create'};state.menu=null;render();}
 function deleteItem(id){const key=dataKey();const item=db[key]?.find(r=>r.id===id);if(!item)return;db[key]=db[key].filter(r=>r.id!==id);db.trash.push({...item,kind:state.page,key});save();state.detail=null;state.menu=null;render();toast('Moved to trash');}
 function ask(text){if(!text.trim())return;if(db.kind==='student'){state.chat=true;state.messages.push({role:'user',text:text.trim()},{role:'assistant',text:'Your chemistry and biology notes share a useful idea: electrochemical gradients. Review how proton flow through ATP synthase converts stored energy into ATP, then test yourself on membrane transport before your Cell Biology midterm.'});render();document.querySelector('#ask-input')?.focus();return;}state.chat=true;state.messages.push({role:'user',text:text.trim()},{role:'assistant',text:/billing|invoice|stripe/i.test(text)?'Billing v2 is moving to Stripe. Webhook retries now run through a queue. The remaining issues are annual-to-monthly downgrades and duplicate invoice emails (BILL-219).':/release|v4|2431/i.test(text)?'v4.13 ships tomorrow. Review #2431 is still open and blocks the release. Dana and Priya are on the release; the Milestone 2 demo is due Friday.':'Sessions refresh in refreshSession, 5 minutes before the access token expires. Two tabs refreshing at once is the open bug; #2417 fixes it.'});render();document.querySelector('#ask-input')?.focus();}
 

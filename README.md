@@ -83,3 +83,9 @@ The public prototype is hosted at https://yufeiihuang.github.io/ghanawinit/ from
 Use the top-left workspace menu to switch between Umami and Maya’s study space. The student workspace includes biology, chemistry, and calculus notes, study goals, a midterm calendar, and study routines. Student-facing labels use Documents, Connections, and Study routines while Umami retains its original labels and content.
 
 The active choice is stored under `speqq-active-workspace`. Student data uses separate `-student` storage keys for the main workspace, Library, and setup. Seeding only initializes missing records and preserves existing edits in both workspaces. Each visitor gets their own local sample data; this is not a shared multi-user backend.
+
+### Collab
+
+Collab replaces the main Team navigation entry with Groups and People. Student workspaces include sample school, course, and study groups; other workspaces include project and research groups. Create groups, join or leave, view people and shared groups, and record invitations locally.
+
+School/course joins ask for a school email as a self-reported affiliation. This prototype does not verify email ownership or enrollment, send invitations, or provide real multi-user collaboration. Group and invitation records are isolated by workspace under `speqq-collab-v1` storage keys. The marketplace for agents, skills, and memories is outside this feature.
