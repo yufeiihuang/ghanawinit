@@ -2,7 +2,7 @@ export const ONBOARDING_KEY = 'speqq-student-onboarding-v1';
 export const STEPS = ['About you', 'Your goal', 'Your courses', 'Try it', 'Your space'];
 
 export function newDraft() {
-  return { step: 0, name: '', role: 'Student', major: '', year: '', goal: '', exam: '', targetDate: '', courses: [], sources: [], materials: [], transcripts: [], connections: [], completed: false, connectionSaved: false, routine: false };
+  return { step: 0, name: '', role: '', major: '', year: '', goal: '', exam: '', targetDate: '', courses: [], sources: [], materials: [], transcripts: [], connections: [], completed: false, connectionSaved: false, routine: false };
 }
 
 export function readDraft(storage) {
@@ -18,7 +18,7 @@ export function readDraft(storage) {
 }
 
 export function canContinue(draft) {
-  if (draft.step === 0) return Boolean(draft.name.trim() && draft.major.trim());
+  if (draft.step === 0) return Boolean(draft.name.trim() && draft.major.trim() && ['Student', 'Educator', 'Researcher', 'Other'].includes(draft.role));
   if (draft.step === 1) return Boolean(draft.goal);
   return true;
 }

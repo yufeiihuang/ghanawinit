@@ -6,6 +6,8 @@ test('setup requires study context and one goal, but never requires migration', 
   const draft = newDraft();
   assert.equal(canContinue(draft), false);
   draft.name = 'Maya'; draft.major = 'Biology';
+  assert.equal(canContinue(draft), false);
+  draft.role = 'Student';
   assert.equal(canContinue(draft), true);
   draft.step = 1;
   assert.equal(canContinue(draft), false);
@@ -41,4 +43,13 @@ test('courses are trimmed and deduplicated without losing semester context', () 
   toggleSource(draft, 'Notion');
   toggleSource(draft, 'Obsidian');
   assert.deepEqual(draft.sources, ['Notion']);
+});
+
+ test('setup accepts each supported user role and restores it', () => {
+  for (const role of ['Student', 'Educator', 'Researcher', 'Other']) {
+    const draft = { ...newDraft(), name: 'Alex', major: 'Biology', role };
+    assert.equal(canContinue(draft), true);
+    assert.equal(readDraft({ getItem: () => JSON.stringify(draft) }).role, role);
+  }
+  assert.equal(canContinue({ ...newDraft(), name: 'Alex', major: 'Biology', role: 'unknown' }), false);
 });
